@@ -44,7 +44,7 @@ export default function RotatingObject() {
       "#ff1493", // Added deep pink
     ];
 
-    const CHARS = "⚡✧●◆△⬡*.✦★"; // Added more varied characters
+    const CHARS = "✧●◆△⬡*.✦★"; // Added more varied characters
 
     let output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
     let zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
