@@ -22,49 +22,47 @@ export default function RotatingObject() {
     updateCanvasSize();
     window.addEventListener("resize", updateCanvasSize);
 
-    // Increase screen height to show full potato
-    const SCREEN_WIDTH = 50; // Reduced for better visibility
-    const SCREEN_HEIGHT = 50; // Made square to ensure full visibility
+    const SCREEN_WIDTH = 50;
+    const SCREEN_HEIGHT = 50;
     const R1 = 0.5;
     const R2 = 1.0;
-    const K2 = 10; // Moved further back
+    const K2 = 10;
     const K1 = (SCREEN_WIDTH * K2 * 3) / (8 * (R1 + R2));
 
-    // ASCII brightness map (from darkest to brightest)
-    const CHARS = "@$#*!=;:~-,."; // Reversed order for better color mapping
-
-    // Color palette from dark to bright
+    // Enhanced color palette with electric blue accents
     const COLORS = [
-      "#3d2817", // Dark brown
-      "#5c3a21", // Brown
-      "#6f4a2c", // Light brown
-      "#8b5e34", // Tan
-      "#a67744", // Light tan
-      "#c18e50", // Golden brown
-      "#d4a35d", // Light golden
-      "#e8b96a", // Pale golden
-      "#f7d994", // Very light golden
+      "#1a1a2e", // Dark blue
+      "#16213e", // Navy blue
+      "#0f3460", // Deep blue
+      "#247ba0", // Medium blue
+      "#70d6ff", // Light blue
+      "#a2d2ff", // Very light blue
+      "#e0fbfc", // Almost white blue
+      "#00ffff", // Cyan
+      "#80ffff", // Light cyan
     ];
 
-    // Buffers for the ASCII output and Z-buffer
+    const CHARS = "⚡✧●◆△⬡*."; // More dynamic characters
+
     let output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
     let zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
-
+    let time = 0;
     let A = 0,
-      B = 0; // Rotation angles
+      B = 0;
 
     function renderFrame() {
-      // Clear buffers
       output.fill(" ");
       zbuffer.fill(0);
 
-      // Precompute trigonometric values
       const cosA = Math.cos(A),
         sinA = Math.sin(A);
       const cosB = Math.cos(B),
         sinB = Math.sin(B);
 
-      // Iterate over the potato surface
+      // Time-based wave effects
+      const waveSpeed = 0.5;
+      time += 0.016; // Approximately 60fps
+
       for (let theta = 0; theta < 2 * Math.PI; theta += 0.07) {
         const cosTheta = Math.cos(theta);
         const sinTheta = Math.sin(theta);
@@ -73,51 +71,63 @@ export default function RotatingObject() {
           const cosPhi = Math.cos(phi);
           const sinPhi = Math.sin(phi);
 
-          // Create slightly irregular shape for potato effect
-          const circleX = R2 + R1 * cosTheta * (1 + 0.2 * Math.sin(3 * phi));
-          const circleY = R1 * sinTheta * (1 + 0.1 * Math.cos(2 * theta));
+          // Create morphing wave effects
+          const morphFactor = Math.sin(time * waveSpeed + theta * 3) * 0.3;
+          const electricPulse = Math.sin(time * 2 + phi * 4) * 0.2;
 
-          // 3D coordinates after rotation
-          const x = circleX * (cosB * cosPhi + sinA * sinB * sinPhi) - circleY * cosA * sinB;
-          const y = circleX * (sinB * cosPhi - sinA * cosB * sinPhi) + circleY * cosA * cosB;
+          // Dynamic radius with wave distortion
+          const dynamicR1 = R1 * (1 + morphFactor);
+          const dynamicR2 = R2 * (1 + electricPulse);
+
+          // Create more organic, flowing shape
+          const circleX = dynamicR2 + dynamicR1 * cosTheta * (1 + 0.2 * Math.sin(3 * phi + time));
+          const circleY = dynamicR1 * sinTheta * (1 + 0.1 * Math.cos(2 * theta + time));
+
+          // Add electric field effect
+          const electricField = Math.sin(time * 3 + theta * 5) * Math.cos(phi * 3) * 0.15;
+
+          // Enhanced 3D coordinates with electric field distortion
+          const x = circleX * (cosB * cosPhi + sinA * sinB * sinPhi) - circleY * cosA * sinB + electricField;
+          const y = circleX * (sinB * cosPhi - sinA * cosB * sinPhi) + circleY * cosA * cosB + electricField;
           const z = K2 + cosA * circleX * sinPhi + circleY * sinA;
 
-          // Calculate 2D projection
-          const ooz = 1 / z; // "one over z"
+          const ooz = 1 / z;
           const xp = Math.floor(SCREEN_WIDTH / 2 + K1 * ooz * x);
           const yp = Math.floor(SCREEN_HEIGHT / 2 - K1 * ooz * y);
 
-          // Calculate luminance
+          // Enhanced luminance calculation with electric effect
           const L =
-            cosPhi * cosTheta * sinB -
-            cosA * cosTheta * sinPhi -
-            sinA * sinTheta +
-            cosB * (cosA * sinTheta - cosTheta * sinA * sinPhi);
+            (cosPhi * cosTheta * sinB -
+              cosA * cosTheta * sinPhi -
+              sinA * sinTheta +
+              cosB * (cosA * sinTheta - cosTheta * sinA * sinPhi)) *
+            (1 + Math.abs(electricField));
 
-          // Only render visible surfaces
           if (L > 0 && xp >= 0 && xp < SCREEN_WIDTH && yp >= 0 && yp < SCREEN_HEIGHT) {
             const pos = xp + yp * SCREEN_WIDTH;
             if (ooz > zbuffer[pos]) {
               zbuffer[pos] = ooz;
-              const luminanceIndex = Math.floor(L * 8);
-              output[pos] = CHARS[Math.min(luminanceIndex, CHARS.length - 1)];
+              // Add random electric sparks
+              const spark = Math.random() > 0.99 ? CHARS[0] : CHARS[Math.floor(L * 8) % CHARS.length];
+              output[pos] = spark;
             }
           }
         }
       }
 
       // Render to canvas
-      context.fillStyle = "black";
+      context.fillStyle = "#000810"; // Dark blue background
       context.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Calculate character size based on canvas dimensions
       const charSize = Math.min(canvas.width / (SCREEN_WIDTH + 8), canvas.height / (SCREEN_HEIGHT + 8));
-
       context.font = `${charSize}px monospace`;
 
-      // Center the potato in the canvas
       const startX = (canvas.width - SCREEN_WIDTH * charSize) / 2;
       const startY = (canvas.height - SCREEN_HEIGHT * charSize) / 2;
+
+      // Add glow effect
+      context.shadowBlur = 15;
+      context.shadowColor = "#00ffff";
 
       for (let y = 0; y < SCREEN_HEIGHT; y++) {
         const line = output.slice(y * SCREEN_WIDTH, (y + 1) * SCREEN_WIDTH);
@@ -132,9 +142,9 @@ export default function RotatingObject() {
         }
       }
 
-      // Update rotation angles
-      A += 0.005;
-      B += 0.003;
+      // Slower rotation
+      A += 0.003;
+      B += 0.002;
 
       requestAnimationFrame(renderFrame);
     }
@@ -147,8 +157,8 @@ export default function RotatingObject() {
   }, []);
 
   return (
-    <div className="w-full h-[100vh] flex items-center justify-center bg-black p-8">
-      <canvas ref={canvasRef} className="bg-black" />
+    <div className="w-full h-[100vh] flex items-center justify-center bg-[#000810] p-8">
+      <canvas ref={canvasRef} className="bg-[#000810]" />
     </div>
   );
 }
