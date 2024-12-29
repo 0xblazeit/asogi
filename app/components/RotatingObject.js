@@ -72,6 +72,31 @@ export default function RotatingObject() {
     let burstProgress = -1; // -1 means no burst active
     let lastBurstTime = 0;
 
+    // Add after the existing constants
+    const MATRIX_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*+-./:;<=>?[]^_`{|}~¦";
+    const MATRIX_COLUMNS = Array(SCREEN_WIDTH)
+      .fill(0)
+      .map(() => ({
+        y: Math.floor(Math.random() * SCREEN_HEIGHT), // Starting position
+        speed: 0.2 + Math.random() * 0.3, // Random speed
+        length: 5 + Math.floor(Math.random() * 15), // Trail length
+        chars: Array(20)
+          .fill(0)
+          .map(() => MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)]),
+        lastUpdate: 0,
+        updateInterval: 50 + Math.random() * 100, // Random update interval for characters
+      }));
+
+    // Add matrix color constants
+    const MATRIX_COLORS = [
+      "#00ff00", // Bright green
+      "#33ff33",
+      "#66ff66",
+      "#99ff99",
+      "#ccffcc",
+      "#ffffff", // White for the leading character
+    ];
+
     function renderFrame() {
       output.fill(" ");
       zbuffer.fill(0);
@@ -266,6 +291,51 @@ export default function RotatingObject() {
           }
         }
       }
+
+      // After rendering the rotating object, add the matrix effect
+      for (let x = 0; x < SCREEN_WIDTH; x++) {
+        const column = MATRIX_COLUMNS[x];
+
+        // Update character positions
+        column.y += column.speed;
+        if (column.y > SCREEN_HEIGHT + column.length) {
+          column.y = -column.length;
+          column.speed = 0.2 + Math.random() * 0.3;
+          column.length = 5 + Math.floor(Math.random() * 15);
+        }
+
+        // Update characters periodically
+        if (Date.now() - column.lastUpdate > column.updateInterval) {
+          column.chars = column.chars.map(() => MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)]);
+          column.lastUpdate = Date.now();
+        }
+
+        // Render the column
+        for (let i = 0; i < column.length; i++) {
+          const y = Math.floor(column.y) - i;
+          if (y >= 0 && y < SCREEN_HEIGHT) {
+            const pos = x + y * SCREEN_WIDTH;
+            if (output[pos] === " ") {
+              // Only draw matrix effect in empty spaces
+              const char = column.chars[i % column.chars.length];
+              const fadeIndex = Math.floor((i / column.length) * MATRIX_COLORS.length);
+
+              context.fillStyle = MATRIX_COLORS[fadeIndex];
+              context.shadowBlur = i === 0 ? 15 : 5; // Stronger glow for leading character
+              context.shadowColor = MATRIX_COLORS[0];
+
+              // Adjust opacity based on position in trail
+              context.globalAlpha = 1 - i / column.length;
+              context.fillText(char, startX + x * charSize, startY + y * charSize);
+              context.globalAlpha = 1;
+            }
+          }
+        }
+      }
+
+      // Reset shadow properties for next frame
+      context.shadowBlur = 20;
+      context.shadowColor = `hsl(${(time * 50) % 360}, 100%, 50%)`;
 
       // Varied rotation speeds with organic acceleration
       A += 0.003 * (1 + pulse * 0.2 + breathe * 0.15);
