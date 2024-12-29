@@ -20,10 +20,10 @@ export default function RotatingObject({ showMatrixEffect = false }) {
     ];
 
     // Initial constants
-    let SCREEN_WIDTH = Math.ceil(window.innerWidth / 20);
-    let SCREEN_HEIGHT = Math.ceil(window.innerHeight / 20);
-    const R1 = 0.5;
-    const R2 = 1.0;
+    let SCREEN_WIDTH = Math.ceil(window.innerWidth / 15);
+    let SCREEN_HEIGHT = Math.ceil(window.innerHeight / 15);
+    const R1 = 0.6;
+    const R2 = 1.2;
     const K2 = 5;
     const K1 = (Math.min(SCREEN_WIDTH, SCREEN_HEIGHT) * K2 * 3) / (8 * (R1 + R2));
 
@@ -34,6 +34,13 @@ export default function RotatingObject({ showMatrixEffect = false }) {
       B = 0;
     let burstProgress = -1;
     let lastBurstTime = 0;
+
+    // Add dynamic speed variations
+    const dynamicSpeed = {
+      base: 1 + Math.sin(time * 0.5) * 0.3,
+      pulse: Math.sin(time * 2) * 0.4 + Math.cos(time) * 0.3,
+      twist: Math.cos(time * 1.5) * 0.5,
+    };
 
     // Function to initialize matrix columns
     const initializeMatrixColumns = () => {
@@ -61,8 +68,8 @@ export default function RotatingObject({ showMatrixEffect = false }) {
       canvas.height = window.innerHeight;
 
       // Adjust the screen dimensions based on the viewport
-      SCREEN_WIDTH = Math.ceil(window.innerWidth / 20);
-      SCREEN_HEIGHT = Math.ceil(window.innerHeight / 20);
+      SCREEN_WIDTH = Math.ceil(window.innerWidth / 15);
+      SCREEN_HEIGHT = Math.ceil(window.innerHeight / 15);
 
       // Reinitialize arrays with new dimensions
       output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
@@ -123,9 +130,9 @@ export default function RotatingObject({ showMatrixEffect = false }) {
         sinB = Math.sin(B);
 
       // Enhanced fluid motion
-      const waveSpeed = 0.8;
-      time += 0.016;
-      breathePhase += 0.01; // Slow breathing cycle
+      const waveSpeed = 1.2;
+      time += 0.02;
+      breathePhase += 0.015;
 
       // Complex organic pulsing with multiple harmonics
       const breathe = Math.sin(breathePhase) * 0.3;
@@ -135,7 +142,7 @@ export default function RotatingObject({ showMatrixEffect = false }) {
 
       // Handle color bursts
       const timeBetweenBursts = 2000; // More frequent bursts (2 seconds)
-      const burstChance = 0.5; // 50% chance of burst
+      const burstChance = 0.6; // Increased from 0.5
       const currentTime = Date.now();
 
       // Check if we should start a new burst
@@ -148,31 +155,31 @@ export default function RotatingObject({ showMatrixEffect = false }) {
 
       // Update burst progress if active
       if (burstProgress >= 0) {
-        burstProgress += 0.015; // Slower burst wave
-        if (burstProgress > 1.5) {
+        burstProgress += 0.02;
+        if (burstProgress > 1.2) {
           // Shorter travel distance
           burstProgress = -1;
         }
       }
 
-      for (let theta = 0; theta < 2 * Math.PI; theta += 0.07) {
+      for (let theta = 0; theta < 2 * Math.PI; theta += 0.06) {
         const cosTheta = Math.cos(theta);
         const sinTheta = Math.sin(theta);
 
-        for (let phi = 0; phi < 2 * Math.PI; phi += 0.02) {
+        for (let phi = 0; phi < 2 * Math.PI; phi += 0.015) {
           const cosPhi = Math.cos(phi);
           const sinPhi = Math.sin(phi);
 
           // Enhanced fluid morphing with multiple frequencies
           const morphFactor =
-            Math.sin(time * waveSpeed + theta * 3) * 0.3 +
-            Math.cos(time * 0.5 + phi * 2) * 0.2 +
-            Math.sin(time * 0.3 + theta * 2) * 0.15; // Added slower morphing
+            Math.sin(time * waveSpeed * dynamicSpeed.base + theta * 3) * 0.4 +
+            Math.cos(time * 0.7 * dynamicSpeed.pulse + phi * 2) * 0.3 +
+            Math.sin(time * 0.5 * dynamicSpeed.twist + theta * 2) * 0.25;
 
           const electricPulse =
-            Math.sin(time * 2 + phi * 4) * 0.2 +
-            Math.cos(time * 1.5 + theta * 3) * 0.15 +
-            Math.sin(time * 0.8 + phi * 2) * 0.1; // Added gentler pulse
+            Math.sin(time * 2.5 * dynamicSpeed.base + phi * 4) * 0.25 +
+            Math.cos(time * 1.8 * dynamicSpeed.pulse + theta * 3) * 0.2 +
+            Math.sin(time * 1.2 * dynamicSpeed.twist + phi * 2) * 0.15;
 
           // Enhanced organic movement
           const spiralEffect =
@@ -263,8 +270,8 @@ export default function RotatingObject({ showMatrixEffect = false }) {
       const startY = (canvas.height - SCREEN_HEIGHT * charSize) / 2;
 
       // Enhanced glow effect
-      context.shadowBlur = 20;
-      context.shadowColor = `hsl(${(time * 50) % 360}, 100%, 50%)`; // Color-cycling glow
+      context.shadowBlur = 20 + Math.sin(time * 3) * 5;
+      context.shadowColor = `hsl(${(time * 70) % 360}, 100%, ${50 + Math.sin(time * 2) * 20}%)`;
 
       for (let y = 0; y < SCREEN_HEIGHT; y++) {
         const line = output.slice(y * SCREEN_WIDTH, (y + 1) * SCREEN_WIDTH);
@@ -315,9 +322,9 @@ export default function RotatingObject({ showMatrixEffect = false }) {
           const column = MATRIX_COLUMNS[x];
 
           // Update character positions with dynamic speed
-          column.speedCycle += 0.01;
-          const currentSpeed = column.speed + Math.sin(column.speedCycle) * column.speedVariation;
-          column.y += currentSpeed;
+          column.speedCycle += 0.015;
+          const currentSpeed = column.speed + Math.sin(column.speedCycle) * (column.speedVariation * 1.5);
+          column.y += currentSpeed * dynamicSpeed.base;
 
           if (column.y > SCREEN_HEIGHT + column.length) {
             column.y = -column.length;
@@ -352,8 +359,8 @@ export default function RotatingObject({ showMatrixEffect = false }) {
       context.shadowBlur = 20;
       context.shadowColor = `hsl(${(time * 50) % 360}, 100%, 50%)`;
 
-      A += 0.003 * (1 + pulse * 0.2 + breathe * 0.15);
-      B += 0.002 * (1 + secondaryPulse * 0.2 + breathe * 0.1);
+      A += 0.005 * (1 + pulse * 0.3 + breathe * 0.25);
+      B += 0.004 * (1 + secondaryPulse * 0.3 + breathe * 0.2);
 
       requestAnimationFrame(renderFrame);
     }
