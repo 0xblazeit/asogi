@@ -88,49 +88,51 @@ export default function RotatingObject({ showMatrixEffect = false }) {
     // Add breathing effect base frequency
     let breathePhase = 0;
 
-    // Enhanced color palette with more vibrant colors
+    // Update the color palettes with more vibrant warm colors
     const COLORS = [
       "#1a1a2e",
       "#16213e",
       "#0f3460",
-      "#247ba0",
-      "#70d6ff",
-      "#a2d2ff",
-      "#e0fbfc",
-      "#00ffff",
-      "#80ffff",
-      "#ff00ff", // Added magenta for energy bursts
-      "#ff1493", // Added deep pink
+      "#ff4e00", // Bright orange
+      "#ff7f50", // Coral
+      "#ff6b6b", // Warm red
+      "#ffd700", // Gold
+      "#ff8c00", // Dark orange
+      "#ff5722", // Deep orange
+      "#ff3d00", // Bright orange-red
+      "#ff1744", // Vibrant red
     ];
 
-    // Add bright versions of the colors for bursts
+    // Update bright versions with even more intense warm colors
     const BRIGHT_COLORS = [
-      "#4a4a8e", // Much brighter versions
+      "#4a4a8e",
       "#4661ae",
       "#3f84d0",
-      "#54c0f0",
-      "#b0f6ff",
-      "#e2ffff",
-      "#ffffff",
-      "#80ffff",
-      "#c0ffff",
-      "#ff80ff",
-      "#ff74c3",
+      "#ff7b00", // Brighter orange
+      "#ff9e40", // Light orange
+      "#ffac41", // Warm gold
+      "#ffcc00", // Bright yellow
+      "#ff9100", // Vivid orange
+      "#ff5252", // Bright red
+      "#ff3d00", // Intense orange
+      "#ff1744", // Vibrant red
     ];
 
     const CHARS = "✧●◆△⬡*.✦★"; // Added more varied characters
 
-    // Add these constants near the top of useEffect
+    // Modify the OSCILLATION_SPOTS configuration for warmer colors
     const OSCILLATION_SPOTS = Array(5)
       .fill(0)
       .map(() => ({
         theta: Math.random() * 2 * Math.PI,
         phi: Math.random() * 2 * Math.PI,
-        radius: 0.2 + Math.random() * 0.3, // Radius of influence
-        frequency: 0.5 + Math.random() * 2, // How fast it pulses
-        amplitude: 0.2 + Math.random() * 0.4, // How strong the effect is
-        lifetime: 0, // Current lifetime of the hotspot
-        maxLifetime: 100 + Math.random() * 200, // How long it lasts before relocating
+        radius: 0.15 + Math.random() * 0.2, // Smaller radius for more focused effect
+        frequency: 0.8 + Math.random() * 2.5, // Faster oscillations
+        amplitude: 0.4 + Math.random() * 0.6, // Stronger amplitude
+        lifetime: 0,
+        maxLifetime: 80 + Math.random() * 160, // Shorter lifetime for more dynamic changes
+        color: 20 + Math.random() * 40, // Hue range between orange-red (20) and yellow-orange (60)
+        intensity: 0.9 + Math.random() * 0.3, // Increased intensity
       }));
 
     // Add this function before renderFrame
@@ -150,79 +152,73 @@ export default function RotatingObject({ showMatrixEffect = false }) {
       });
     };
 
-    // Add these constants near the other effect constants
-    const ENERGY_STREAMS = Array(3)
+    // First, let's modify the ENERGY_STREAMS configuration for more edge-focused effects
+    const ENERGY_STREAMS = Array(5)
       .fill(0)
       .map(() => ({
         theta: Math.random() * 2 * Math.PI,
-        phase: 0, // 0 to 1 for outward, 1 to 2 for inward
-        speed: 0.01 + Math.random() * 0.01,
-        width: 0.2 + Math.random() * 0.3,
-        intensity: 0.6 + Math.random() * 0.4,
-        maxRadius: 2.5 + Math.random() * 1.5,
+        phase: 0,
+        speed: 0.008 + Math.random() * 0.008, // Slightly slower for more visible streams
+        width: 0.15 + Math.random() * 0.2, // Thinner streams
+        intensity: 0.8 + Math.random() * 0.4, // Increased intensity
+        maxRadius: 1.8 + Math.random() * 1.2, // Shorter reach for more frequent interactions
         active: true,
-        color: Math.random() * 360, // Hue value
+        color: 15 + Math.random() * 45, // Hue range focused on orange spectrum
+        trailLength: 0.3 + Math.random() * 0.2, // New: controls the length of the energy trail
+        pulseFreq: 1 + Math.random() * 2, // New: individual pulse frequency
       }));
 
-    // Add this function before renderFrame
-    const updateEnergyStreams = () => {
-      ENERGY_STREAMS.forEach((stream) => {
-        if (stream.active) {
-          stream.phase += stream.speed;
-
-          // Reset cycle when complete
-          if (stream.phase >= 2) {
-            stream.phase = 0;
-            stream.theta = Math.random() * 2 * Math.PI;
-            stream.speed = 0.01 + Math.random() * 0.01;
-            stream.width = 0.2 + Math.random() * 0.3;
-            stream.color = Math.random() * 360;
-          }
-        }
-      });
+    // Add this new function to detect edge proximity
+    const calculateEdgeProximity = (x, y, radius) => {
+      const baseRadius = (R1 + R2) / 2;
+      const distanceFromBase = Math.abs(radius - baseRadius);
+      return Math.exp(-Math.pow(distanceFromBase / 0.1, 2)); // Sharp falloff for edge detection
     };
 
-    // Add this function to calculate energy stream influence
+    // Modify the calculateEnergyStreamEffect function
     const calculateEnergyStreamEffect = (theta, radius) => {
       let effect = {
         intensity: 0,
         colorShift: 0,
         distortion: 0,
+        edgeGlow: 0, // New: specific edge glow effect
       };
+
+      // Add edge proximity calculation
+      const edgeProximity = calculateEdgeProximity(theta, radius);
+      effect.edgeGlow = edgeProximity * 0.5;
 
       ENERGY_STREAMS.forEach((stream) => {
         if (!stream.active) return;
 
-        // Calculate angular distance
         let angleDiff = Math.abs(theta - stream.theta);
         angleDiff = Math.min(angleDiff, 2 * Math.PI - angleDiff);
 
-        // Calculate radial position of the stream
-        let streamRadius;
-        if (stream.phase <= 1) {
-          // Outward phase
-          streamRadius = stream.maxRadius * stream.phase;
-        } else {
-          // Inward phase
-          streamRadius = stream.maxRadius * (2 - stream.phase);
+        // Calculate stream position with trail effect
+        const streamRadius =
+          stream.phase <= 1 ? stream.maxRadius * stream.phase : stream.maxRadius * (2 - stream.phase);
+
+        // Add trail effect
+        const trailStart = Math.max(0, streamRadius - stream.trailLength);
+        const trailEnd = streamRadius;
+
+        // Check if point is within the trail
+        if (radius >= trailStart && radius <= trailEnd) {
+          const trailPosition = (radius - trailStart) / (trailEnd - trailStart);
+          const trailEffect = Math.sin(trailPosition * Math.PI);
+
+          const angularInfluence = Math.exp(-Math.pow(angleDiff / stream.width, 2));
+          const streamEffect = trailEffect * angularInfluence * stream.intensity;
+
+          effect.intensity += streamEffect;
+          effect.colorShift += streamEffect * Math.sin((stream.color * Math.PI) / 180);
+
+          // Add pulsing effect on the edge
+          if (edgeProximity > 0.5) {
+            const pulseWave = Math.sin(time * stream.pulseFreq + theta * 2);
+            effect.distortion += streamEffect * pulseWave * edgeProximity * 0.3;
+          }
         }
-
-        // Calculate influence based on proximity
-        const radialDiff = Math.abs(radius - streamRadius);
-        const angularInfluence = Math.exp(-Math.pow(angleDiff / stream.width, 2));
-        const radialInfluence = Math.exp(-Math.pow(radialDiff / 0.2, 2));
-
-        const totalInfluence = angularInfluence * radialInfluence * stream.intensity;
-
-        // Add wave effect when stream returns
-        if (stream.phase > 1) {
-          const impactWave = Math.exp(-Math.pow((stream.phase - 1.5) * 4, 2));
-          effect.distortion += totalInfluence * impactWave * 0.3;
-          effect.colorShift += impactWave * 0.5;
-        }
-
-        effect.intensity += totalInfluence;
-        effect.colorShift += totalInfluence * Math.sin((stream.color * Math.PI) / 180);
       });
 
       return effect;
@@ -299,9 +295,14 @@ export default function RotatingObject({ showMatrixEffect = false }) {
               const distance = Math.sqrt(distanceTheta * distanceTheta + distancePhi * distancePhi);
 
               if (distance < spot.radius) {
-                const falloff = 1 - distance / spot.radius;
+                const falloff = Math.pow(1 - distance / spot.radius, 2); // Sharper falloff
                 const oscillation = Math.sin(time * spot.frequency) * spot.amplitude;
-                return acc + oscillation * falloff * Math.pow(1 - spot.lifetime / spot.maxLifetime, 2);
+                const lifetimeFactor = Math.pow(1 - spot.lifetime / spot.maxLifetime, 1.5);
+
+                // Add pulsing intensity
+                const pulseIntensity = 1 + Math.sin(time * 2 + distance * 8) * 0.3;
+
+                return acc + oscillation * falloff * lifetimeFactor * pulseIntensity * spot.intensity;
               }
               return acc;
             }, 0);
@@ -416,23 +417,60 @@ export default function RotatingObject({ showMatrixEffect = false }) {
             const luminanceIndex = CHARS.indexOf(char);
             let colorIndex = Math.floor((luminanceIndex / CHARS.length) * COLORS.length);
 
-            // Calculate energy stream color influence
-            const energyEffect = calculateEnergyStreamEffect(
-              Math.atan2(y - SCREEN_HEIGHT / 2, x - SCREEN_WIDTH / 2),
-              Math.sqrt(Math.pow(x - SCREEN_WIDTH / 2, 2) + Math.pow(y - SCREEN_HEIGHT / 2, 2)) / SCREEN_WIDTH
+            // Calculate position and effects
+            const relX = x - SCREEN_WIDTH / 2;
+            const relY = y - SCREEN_HEIGHT / 2;
+            const radius = Math.sqrt(relX * relX + relY * relY) / SCREEN_WIDTH;
+            const theta = Math.atan2(relY, relX);
+
+            const energyEffect = calculateEnergyStreamEffect(theta, radius);
+
+            // Calculate oscillation spot color influence
+            const spotEffect = OSCILLATION_SPOTS.reduce(
+              (acc, spot) => {
+                const distanceTheta = Math.min(
+                  Math.abs(theta - spot.theta),
+                  Math.abs(theta - spot.theta + 2 * Math.PI),
+                  Math.abs(theta - spot.theta - 2 * Math.PI)
+                );
+                const distance = Math.sqrt(distanceTheta * distanceTheta);
+
+                if (distance < spot.radius) {
+                  const falloff = Math.pow(1 - distance / spot.radius, 2);
+                  return {
+                    intensity: acc.intensity + falloff * spot.intensity,
+                    hue: acc.hue + spot.color * falloff,
+                    weight: acc.weight + falloff,
+                  };
+                }
+                return acc;
+              },
+              { intensity: 0, hue: 0, weight: 0 }
             );
 
-            // Modify glow based on energy effect
-            context.shadowBlur = 20 + energyEffect.intensity * 15;
+            // Enhanced edge glow effect
+            const edgeGlow = energyEffect.edgeGlow * (1 + Math.sin(time * 2 + theta * 3) * 0.3);
+            context.shadowBlur = 20 + energyEffect.intensity * 15 + edgeGlow * 20 + spotEffect.intensity * 25;
 
-            // Create dynamic color based on energy streams
-            if (energyEffect.intensity > 0.1) {
-              const energyHue = (time * 50 + energyEffect.colorShift * 100) % 360;
-              const energyColor = `hsl(${energyHue}, 100%, ${50 + energyEffect.intensity * 30}%)`;
-              context.shadowColor = energyColor;
+            if (energyEffect.intensity > 0.1 || edgeGlow > 0.3 || spotEffect.intensity > 0.1) {
+              const baseHue = (time * 30 + energyEffect.colorShift * 60) % 360; // Slower color cycle
+              const spotHue = spotEffect.weight > 0 ? spotEffect.hue / spotEffect.weight : 30; // Default to orange
+              const finalHue = spotEffect.intensity > 0.3 ? spotHue : baseHue;
+
+              const saturation = 100;
+              // Increase lightness for more vibrant appearance
+              const lightness = 55 + energyEffect.intensity * 35 + edgeGlow * 25 + spotEffect.intensity * 45;
+
+              // Add more warmth to the glow
+              const energyColor = `hsl(${finalHue}, ${saturation}%, ${lightness}%)`;
+              const edgeColor = `hsl(${(finalHue + 15) % 360}, ${saturation}%, ${Math.min(lightness + 10, 100)}%)`;
+
+              // Increase glow intensity for focused areas
+              context.shadowBlur = 25 + energyEffect.intensity * 20 + edgeGlow * 25 + spotEffect.intensity * 30;
+
+              context.shadowColor = edgeGlow > 0.3 ? edgeColor : energyColor;
               context.fillStyle = energyColor;
             } else {
-              // Use normal color system
               context.fillStyle = COLORS[colorIndex];
             }
 
