@@ -150,6 +150,84 @@ export default function RotatingObject({ showMatrixEffect = false }) {
       });
     };
 
+    // Add these constants near the other effect constants
+    const ENERGY_STREAMS = Array(3)
+      .fill(0)
+      .map(() => ({
+        theta: Math.random() * 2 * Math.PI,
+        phase: 0, // 0 to 1 for outward, 1 to 2 for inward
+        speed: 0.01 + Math.random() * 0.01,
+        width: 0.2 + Math.random() * 0.3,
+        intensity: 0.6 + Math.random() * 0.4,
+        maxRadius: 2.5 + Math.random() * 1.5,
+        active: true,
+        color: Math.random() * 360, // Hue value
+      }));
+
+    // Add this function before renderFrame
+    const updateEnergyStreams = () => {
+      ENERGY_STREAMS.forEach((stream) => {
+        if (stream.active) {
+          stream.phase += stream.speed;
+
+          // Reset cycle when complete
+          if (stream.phase >= 2) {
+            stream.phase = 0;
+            stream.theta = Math.random() * 2 * Math.PI;
+            stream.speed = 0.01 + Math.random() * 0.01;
+            stream.width = 0.2 + Math.random() * 0.3;
+            stream.color = Math.random() * 360;
+          }
+        }
+      });
+    };
+
+    // Add this function to calculate energy stream influence
+    const calculateEnergyStreamEffect = (theta, radius) => {
+      let effect = {
+        intensity: 0,
+        colorShift: 0,
+        distortion: 0,
+      };
+
+      ENERGY_STREAMS.forEach((stream) => {
+        if (!stream.active) return;
+
+        // Calculate angular distance
+        let angleDiff = Math.abs(theta - stream.theta);
+        angleDiff = Math.min(angleDiff, 2 * Math.PI - angleDiff);
+
+        // Calculate radial position of the stream
+        let streamRadius;
+        if (stream.phase <= 1) {
+          // Outward phase
+          streamRadius = stream.maxRadius * stream.phase;
+        } else {
+          // Inward phase
+          streamRadius = stream.maxRadius * (2 - stream.phase);
+        }
+
+        // Calculate influence based on proximity
+        const radialDiff = Math.abs(radius - streamRadius);
+        const angularInfluence = Math.exp(-Math.pow(angleDiff / stream.width, 2));
+        const radialInfluence = Math.exp(-Math.pow(radialDiff / 0.2, 2));
+
+        const totalInfluence = angularInfluence * radialInfluence * stream.intensity;
+
+        // Add wave effect when stream returns
+        if (stream.phase > 1) {
+          const impactWave = Math.exp(-Math.pow((stream.phase - 1.5) * 4, 2));
+          effect.distortion += totalInfluence * impactWave * 0.3;
+          effect.colorShift += impactWave * 0.5;
+        }
+
+        effect.intensity += totalInfluence;
+        effect.colorShift += totalInfluence * Math.sin((stream.color * Math.PI) / 180);
+      });
+
+      return effect;
+    };
+
     function renderFrame() {
       output.fill(" ");
       zbuffer.fill(0);
@@ -336,35 +414,26 @@ export default function RotatingObject({ showMatrixEffect = false }) {
           const char = line[x];
           if (char !== " ") {
             const luminanceIndex = CHARS.indexOf(char);
-            const colorIndex = Math.floor((luminanceIndex / CHARS.length) * COLORS.length);
+            let colorIndex = Math.floor((luminanceIndex / CHARS.length) * COLORS.length);
 
-            // Calculate distance from center for burst effect
-            const centerX = SCREEN_WIDTH / 2;
-            const centerY = SCREEN_HEIGHT / 2;
-            const distanceFromCenter =
-              Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2)) /
-              Math.sqrt(Math.pow(SCREEN_WIDTH / 2, 2) + Math.pow(SCREEN_HEIGHT / 2, 2));
+            // Calculate energy stream color influence
+            const energyEffect = calculateEnergyStreamEffect(
+              Math.atan2(y - SCREEN_HEIGHT / 2, x - SCREEN_WIDTH / 2),
+              Math.sqrt(Math.pow(x - SCREEN_WIDTH / 2, 2) + Math.pow(y - SCREEN_HEIGHT / 2, 2)) / SCREEN_WIDTH
+            );
 
-            // Apply burst effect if active
-            if (burstProgress >= 0) {
-              const burstDistance = Math.abs(distanceFromCenter - burstProgress);
-              const burstEffect = Math.max(0, 1 - burstDistance * 3); // Wider burst wave (changed from 5 to 3)
+            // Modify glow based on energy effect
+            context.shadowBlur = 20 + energyEffect.intensity * 15;
 
-              if (burstEffect > 0) {
-                // Add extra glow during burst
-                context.shadowBlur = 25; // Increased glow
-                context.shadowColor = BRIGHT_COLORS[Math.min(colorIndex, BRIGHT_COLORS.length - 1)];
-
-                // Interpolate with higher factor for more intensity
-                const normalColor = COLORS[Math.min(colorIndex, COLORS.length - 1)];
-                const brightColor = BRIGHT_COLORS[Math.min(colorIndex, BRIGHT_COLORS.length - 1)];
-                context.fillStyle = interpolateColors(normalColor, brightColor, burstEffect * 1.5);
-              } else {
-                context.shadowBlur = 20;
-                context.fillStyle = COLORS[Math.min(colorIndex, COLORS.length - 1)];
-              }
+            // Create dynamic color based on energy streams
+            if (energyEffect.intensity > 0.1) {
+              const energyHue = (time * 50 + energyEffect.colorShift * 100) % 360;
+              const energyColor = `hsl(${energyHue}, 100%, ${50 + energyEffect.intensity * 30}%)`;
+              context.shadowColor = energyColor;
+              context.fillStyle = energyColor;
             } else {
-              context.fillStyle = COLORS[Math.min(colorIndex, COLORS.length - 1)];
+              // Use normal color system
+              context.fillStyle = COLORS[colorIndex];
             }
 
             context.fillText(char, startX + x * charSize, startY + (y + 1) * charSize);
