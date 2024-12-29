@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 
-export default function RotatingObject() {
+export default function RotatingObject({ showMatrixEffect = false }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -308,41 +308,42 @@ export default function RotatingObject() {
         }
       }
 
-      // After rendering the rotating object, add the matrix effect
-      for (let x = 0; x < SCREEN_WIDTH; x++) {
-        const column = MATRIX_COLUMNS[x];
+      // Wrap matrix effect in conditional
+      if (showMatrixEffect) {
+        // After rendering the rotating object, add the matrix effect
+        for (let x = 0; x < SCREEN_WIDTH; x++) {
+          const column = MATRIX_COLUMNS[x];
 
-        // Update character positions with dynamic speed
-        column.speedCycle += 0.01; // Slowly cycle the speed variation
-        const currentSpeed = column.speed + Math.sin(column.speedCycle) * column.speedVariation;
-        column.y += currentSpeed;
+          // Update character positions with dynamic speed
+          column.speedCycle += 0.01;
+          const currentSpeed = column.speed + Math.sin(column.speedCycle) * column.speedVariation;
+          column.y += currentSpeed;
 
-        if (column.y > SCREEN_HEIGHT + column.length) {
-          column.y = -column.length;
-          // Reset with new random slow speed when recycling
-          column.speed = 0.05 + Math.random() * 0.15;
-          column.length = 5 + Math.floor(Math.random() * 15);
-          column.speedCycle = Math.random() * Math.PI * 2;
-          column.speedVariation = 0.02 + Math.random() * 0.03;
-        }
+          if (column.y > SCREEN_HEIGHT + column.length) {
+            column.y = -column.length;
+            column.speed = 0.05 + Math.random() * 0.15;
+            column.length = 5 + Math.floor(Math.random() * 15);
+            column.speedCycle = Math.random() * Math.PI * 2;
+            column.speedVariation = 0.02 + Math.random() * 0.03;
+          }
 
-        // Render the column
-        for (let i = 0; i < column.length; i++) {
-          const y = Math.floor(column.y) - i;
-          if (y >= 0 && y < SCREEN_HEIGHT) {
-            const char = column.chars[i % column.chars.length];
-            const fadeIndex = Math.floor((i / column.length) * MATRIX_COLORS.length);
+          // Render the column
+          for (let i = 0; i < column.length; i++) {
+            const y = Math.floor(column.y) - i;
+            if (y >= 0 && y < SCREEN_HEIGHT) {
+              const char = column.chars[i % column.chars.length];
+              const fadeIndex = Math.floor((i / column.length) * MATRIX_COLORS.length);
 
-            // Calculate actual screen positions
-            const screenX = (x / SCREEN_WIDTH) * canvas.width;
-            const screenY = (y / SCREEN_HEIGHT) * canvas.height;
+              const screenX = (x / SCREEN_WIDTH) * canvas.width;
+              const screenY = (y / SCREEN_HEIGHT) * canvas.height;
 
-            context.fillStyle = MATRIX_COLORS[fadeIndex];
-            context.shadowBlur = i === 0 ? 15 : 5;
-            context.shadowColor = MATRIX_COLORS[0];
-            context.globalAlpha = 1 - i / column.length;
-            context.fillText(char, screenX, screenY);
-            context.globalAlpha = 1;
+              context.fillStyle = MATRIX_COLORS[fadeIndex];
+              context.shadowBlur = i === 0 ? 15 : 5;
+              context.shadowColor = MATRIX_COLORS[0];
+              context.globalAlpha = 1 - i / column.length;
+              context.fillText(char, screenX, screenY);
+              context.globalAlpha = 1;
+            }
           }
         }
       }
@@ -351,7 +352,6 @@ export default function RotatingObject() {
       context.shadowBlur = 20;
       context.shadowColor = `hsl(${(time * 50) % 360}, 100%, 50%)`;
 
-      // Varied rotation speeds with organic acceleration
       A += 0.003 * (1 + pulse * 0.2 + breathe * 0.15);
       B += 0.002 * (1 + secondaryPulse * 0.2 + breathe * 0.1);
 
@@ -363,7 +363,7 @@ export default function RotatingObject() {
     return () => {
       window.removeEventListener("resize", updateCanvasSize);
     };
-  }, []);
+  }, [showMatrixEffect]);
 
   // Add color interpolation helper function
   function interpolateColors(color1, color2, factor) {
