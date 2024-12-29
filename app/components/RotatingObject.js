@@ -29,6 +29,9 @@ export default function RotatingObject() {
     const K2 = 10;
     const K1 = (SCREEN_WIDTH * K2 * 3) / (8 * (R1 + R2));
 
+    // Add breathing effect base frequency
+    let breathePhase = 0;
+
     // Enhanced color palette with more vibrant colors
     const COLORS = [
       "#1a1a2e",
@@ -61,13 +64,16 @@ export default function RotatingObject() {
       const cosB = Math.cos(B),
         sinB = Math.sin(B);
 
-      // Enhanced time-based effects
-      const waveSpeed = 0.8; // Increased wave speed
+      // Enhanced fluid motion
+      const waveSpeed = 0.8;
       time += 0.016;
+      breathePhase += 0.01; // Slow breathing cycle
 
-      // Add pulsing effect
-      const pulse = Math.sin(time * 1.5) * 0.3;
-      const secondaryPulse = Math.cos(time * 0.7) * 0.2;
+      // Complex organic pulsing with multiple harmonics
+      const breathe = Math.sin(breathePhase) * 0.3;
+      const pulse = Math.sin(time * 1.5) * 0.3 + Math.sin(time * 0.7) * 0.2 + Math.sin(time * 0.3) * 0.1; // Added slower wave
+
+      const secondaryPulse = Math.cos(time * 0.7) * 0.2 + Math.cos(time * 1.2) * 0.15 + Math.cos(time * 0.4) * 0.1; // Added slower wave
 
       for (let theta = 0; theta < 2 * Math.PI; theta += 0.07) {
         const cosTheta = Math.cos(theta);
@@ -77,33 +83,57 @@ export default function RotatingObject() {
           const cosPhi = Math.cos(phi);
           const sinPhi = Math.sin(phi);
 
-          // Enhanced morphing effects
-          const morphFactor = Math.sin(time * waveSpeed + theta * 3) * 0.3;
-          const electricPulse = Math.sin(time * 2 + phi * 4) * 0.2;
+          // Enhanced fluid morphing with multiple frequencies
+          const morphFactor =
+            Math.sin(time * waveSpeed + theta * 3) * 0.3 +
+            Math.cos(time * 0.5 + phi * 2) * 0.2 +
+            Math.sin(time * 0.3 + theta * 2) * 0.15; // Added slower morphing
 
-          // Add spiral effect
-          const spiralEffect = Math.sin(theta * 5 + time * 2) * 0.15;
+          const electricPulse =
+            Math.sin(time * 2 + phi * 4) * 0.2 +
+            Math.cos(time * 1.5 + theta * 3) * 0.15 +
+            Math.sin(time * 0.8 + phi * 2) * 0.1; // Added gentler pulse
 
-          // Add vortex effect
-          const vortexEffect = Math.cos(phi * 3 + time) * 0.2;
+          // Enhanced organic movement
+          const spiralEffect =
+            Math.sin(theta * 5 + time * 2) * 0.15 +
+            Math.cos(phi * 4 + time * 1.5) * 0.1 +
+            Math.sin(theta * 3 + time * 0.7) * 0.08; // Added subtle spiral
 
-          // Dynamic radius with combined effects
-          const dynamicR1 = R1 * (1 + morphFactor + pulse + spiralEffect);
-          const dynamicR2 = R2 * (1 + electricPulse + secondaryPulse + vortexEffect);
+          const vortexEffect =
+            Math.cos(phi * 3 + time) * 0.2 +
+            Math.sin(theta * 4 + time * 1.2) * 0.15 +
+            Math.cos(phi * 2 + time * 0.6) * 0.1; // Added gentle vortex
 
-          // Enhanced organic shape with multiple wave patterns
+          // Enhanced twisting with breathing
+          const twistEffect =
+            Math.sin(theta * 2 + phi * 2 + time * 1.5) * 0.2 +
+            Math.cos(theta * 3 + phi * 3 + time * 0.8) * 0.15 +
+            breathe * Math.sin(theta + phi) * 0.2; // Added breathing influence
+
+          // Dynamic radius with more organic combinations
+          const dynamicR1 = R1 * (1 + morphFactor + pulse + spiralEffect + twistEffect + breathe);
+          const dynamicR2 = R2 * (1 + electricPulse + secondaryPulse + vortexEffect + breathe * 0.5);
+
+          // More fluid shape deformation
           const circleX =
             dynamicR2 +
             dynamicR1 * cosTheta * (1 + 0.3 * Math.sin(3 * phi + time)) +
-            0.2 * Math.sin(theta * 4 + time * 1.5);
+            0.2 * Math.sin(theta * 4 + time * 1.5) +
+            0.15 * Math.cos(phi * 5 + time * 0.8) +
+            0.1 * Math.sin(theta * 2 + phi * 2 + time * 0.5); // Added interweaving pattern
 
           const circleY =
-            dynamicR1 * sinTheta * (1 + 0.2 * Math.cos(2 * theta + time)) + 0.2 * Math.cos(phi * 3 + time * 2);
+            dynamicR1 * sinTheta * (1 + 0.2 * Math.cos(2 * theta + time)) +
+            0.2 * Math.cos(phi * 3 + time * 2) +
+            0.15 * Math.sin(theta * 6 + time * 1.2) +
+            0.1 * Math.cos(theta * 3 + phi * 4 + time * 0.6); // Added flowing pattern
 
-          // Enhanced electric field effect
+          // Enhanced electric field effect with more complexity
           const electricField =
             Math.sin(time * 3 + theta * 5) * Math.cos(phi * 3) * 0.2 +
-            Math.cos(time * 2 + phi * 4) * Math.sin(theta * 3) * 0.15;
+            Math.cos(time * 2 + phi * 4) * Math.sin(theta * 3) * 0.15 +
+            Math.sin(time * 1.5 + theta * 2 + phi * 2) * 0.1;
 
           // Enhanced 3D coordinates with electric field distortion
           const x = circleX * (cosB * cosPhi + sinA * sinB * sinPhi) - circleY * cosA * sinB + electricField;
@@ -114,13 +144,13 @@ export default function RotatingObject() {
           const xp = Math.floor(SCREEN_WIDTH / 2 + K1 * ooz * x);
           const yp = Math.floor(SCREEN_HEIGHT / 2 - K1 * ooz * y);
 
-          // Enhanced luminance calculation
+          // Enhanced luminance with more dynamic range
           const L =
             (cosPhi * cosTheta * sinB -
               cosA * cosTheta * sinPhi -
               sinA * sinTheta +
               cosB * (cosA * sinTheta - cosTheta * sinA * sinPhi)) *
-            (1 + Math.abs(electricField) + Math.abs(pulse));
+            (1 + Math.abs(electricField) + Math.abs(pulse) + Math.abs(twistEffect));
 
           if (L > 0 && xp >= 0 && xp < SCREEN_WIDTH && yp >= 0 && yp < SCREEN_HEIGHT) {
             const pos = xp + yp * SCREEN_WIDTH;
@@ -169,9 +199,9 @@ export default function RotatingObject() {
         }
       }
 
-      // Varied rotation speeds with pulsing
-      A += 0.003 * (1 + pulse * 0.2);
-      B += 0.002 * (1 + secondaryPulse * 0.2);
+      // Varied rotation speeds with organic acceleration
+      A += 0.003 * (1 + pulse * 0.2 + breathe * 0.15);
+      B += 0.002 * (1 + secondaryPulse * 0.2 + breathe * 0.1);
 
       requestAnimationFrame(renderFrame);
     }
