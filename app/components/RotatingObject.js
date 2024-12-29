@@ -29,20 +29,22 @@ export default function RotatingObject() {
     const K2 = 10;
     const K1 = (SCREEN_WIDTH * K2 * 3) / (8 * (R1 + R2));
 
-    // Enhanced color palette with electric blue accents
+    // Enhanced color palette with more vibrant colors
     const COLORS = [
-      "#1a1a2e", // Dark blue
-      "#16213e", // Navy blue
-      "#0f3460", // Deep blue
-      "#247ba0", // Medium blue
-      "#70d6ff", // Light blue
-      "#a2d2ff", // Very light blue
-      "#e0fbfc", // Almost white blue
-      "#00ffff", // Cyan
-      "#80ffff", // Light cyan
+      "#1a1a2e",
+      "#16213e",
+      "#0f3460",
+      "#247ba0",
+      "#70d6ff",
+      "#a2d2ff",
+      "#e0fbfc",
+      "#00ffff",
+      "#80ffff",
+      "#ff00ff", // Added magenta for energy bursts
+      "#ff1493", // Added deep pink
     ];
 
-    const CHARS = "⚡✧●◆△⬡*."; // More dynamic characters
+    const CHARS = "⚡✧●◆△⬡*.✦★"; // Added more varied characters
 
     let output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
     let zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
@@ -59,9 +61,13 @@ export default function RotatingObject() {
       const cosB = Math.cos(B),
         sinB = Math.sin(B);
 
-      // Time-based wave effects
-      const waveSpeed = 0.5;
-      time += 0.016; // Approximately 60fps
+      // Enhanced time-based effects
+      const waveSpeed = 0.8; // Increased wave speed
+      time += 0.016;
+
+      // Add pulsing effect
+      const pulse = Math.sin(time * 1.5) * 0.3;
+      const secondaryPulse = Math.cos(time * 0.7) * 0.2;
 
       for (let theta = 0; theta < 2 * Math.PI; theta += 0.07) {
         const cosTheta = Math.cos(theta);
@@ -71,20 +77,33 @@ export default function RotatingObject() {
           const cosPhi = Math.cos(phi);
           const sinPhi = Math.sin(phi);
 
-          // Create morphing wave effects
+          // Enhanced morphing effects
           const morphFactor = Math.sin(time * waveSpeed + theta * 3) * 0.3;
           const electricPulse = Math.sin(time * 2 + phi * 4) * 0.2;
 
-          // Dynamic radius with wave distortion
-          const dynamicR1 = R1 * (1 + morphFactor);
-          const dynamicR2 = R2 * (1 + electricPulse);
+          // Add spiral effect
+          const spiralEffect = Math.sin(theta * 5 + time * 2) * 0.15;
 
-          // Create more organic, flowing shape
-          const circleX = dynamicR2 + dynamicR1 * cosTheta * (1 + 0.2 * Math.sin(3 * phi + time));
-          const circleY = dynamicR1 * sinTheta * (1 + 0.1 * Math.cos(2 * theta + time));
+          // Add vortex effect
+          const vortexEffect = Math.cos(phi * 3 + time) * 0.2;
 
-          // Add electric field effect
-          const electricField = Math.sin(time * 3 + theta * 5) * Math.cos(phi * 3) * 0.15;
+          // Dynamic radius with combined effects
+          const dynamicR1 = R1 * (1 + morphFactor + pulse + spiralEffect);
+          const dynamicR2 = R2 * (1 + electricPulse + secondaryPulse + vortexEffect);
+
+          // Enhanced organic shape with multiple wave patterns
+          const circleX =
+            dynamicR2 +
+            dynamicR1 * cosTheta * (1 + 0.3 * Math.sin(3 * phi + time)) +
+            0.2 * Math.sin(theta * 4 + time * 1.5);
+
+          const circleY =
+            dynamicR1 * sinTheta * (1 + 0.2 * Math.cos(2 * theta + time)) + 0.2 * Math.cos(phi * 3 + time * 2);
+
+          // Enhanced electric field effect
+          const electricField =
+            Math.sin(time * 3 + theta * 5) * Math.cos(phi * 3) * 0.2 +
+            Math.cos(time * 2 + phi * 4) * Math.sin(theta * 3) * 0.15;
 
           // Enhanced 3D coordinates with electric field distortion
           const x = circleX * (cosB * cosPhi + sinA * sinB * sinPhi) - circleY * cosA * sinB + electricField;
@@ -95,28 +114,36 @@ export default function RotatingObject() {
           const xp = Math.floor(SCREEN_WIDTH / 2 + K1 * ooz * x);
           const yp = Math.floor(SCREEN_HEIGHT / 2 - K1 * ooz * y);
 
-          // Enhanced luminance calculation with electric effect
+          // Enhanced luminance calculation
           const L =
             (cosPhi * cosTheta * sinB -
               cosA * cosTheta * sinPhi -
               sinA * sinTheta +
               cosB * (cosA * sinTheta - cosTheta * sinA * sinPhi)) *
-            (1 + Math.abs(electricField));
+            (1 + Math.abs(electricField) + Math.abs(pulse));
 
           if (L > 0 && xp >= 0 && xp < SCREEN_WIDTH && yp >= 0 && yp < SCREEN_HEIGHT) {
             const pos = xp + yp * SCREEN_WIDTH;
             if (ooz > zbuffer[pos]) {
               zbuffer[pos] = ooz;
-              // Add random electric sparks
-              const spark = Math.random() > 0.99 ? CHARS[0] : CHARS[Math.floor(L * 8) % CHARS.length];
-              output[pos] = spark;
+              // Enhanced character selection with more varied patterns
+              const sparkChance = Math.random();
+              let char;
+              if (sparkChance > 0.99) {
+                char = CHARS[0]; // Lightning bolt
+              } else if (sparkChance > 0.95) {
+                char = CHARS[CHARS.length - 1]; // Star
+              } else {
+                char = CHARS[Math.floor((L * 8 + time) % (CHARS.length - 2)) + 1];
+              }
+              output[pos] = char;
             }
           }
         }
       }
 
-      // Render to canvas
-      context.fillStyle = "#000810"; // Dark blue background
+      // Enhanced rendering with stronger glow
+      context.fillStyle = "#000810";
       context.fillRect(0, 0, canvas.width, canvas.height);
 
       const charSize = Math.min(canvas.width / (SCREEN_WIDTH + 8), canvas.height / (SCREEN_HEIGHT + 8));
@@ -125,9 +152,9 @@ export default function RotatingObject() {
       const startX = (canvas.width - SCREEN_WIDTH * charSize) / 2;
       const startY = (canvas.height - SCREEN_HEIGHT * charSize) / 2;
 
-      // Add glow effect
-      context.shadowBlur = 15;
-      context.shadowColor = "#00ffff";
+      // Enhanced glow effect
+      context.shadowBlur = 20;
+      context.shadowColor = `hsl(${(time * 50) % 360}, 100%, 50%)`; // Color-cycling glow
 
       for (let y = 0; y < SCREEN_HEIGHT; y++) {
         const line = output.slice(y * SCREEN_WIDTH, (y + 1) * SCREEN_WIDTH);
@@ -142,9 +169,9 @@ export default function RotatingObject() {
         }
       }
 
-      // Slower rotation
-      A += 0.003;
-      B += 0.002;
+      // Varied rotation speeds with pulsing
+      A += 0.003 * (1 + pulse * 0.2);
+      B += 0.002 * (1 + secondaryPulse * 0.2);
 
       requestAnimationFrame(renderFrame);
     }
