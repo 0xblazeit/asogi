@@ -8,26 +8,75 @@ export default function RotatingObject() {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
 
-    // Function to update canvas size
-    const updateCanvasSize = () => {
-      const containerWidth = canvas.parentElement.clientWidth;
-      const containerHeight = canvas.parentElement.clientHeight;
-      // Make sure we maintain aspect ratio and have enough height
-      const size = Math.min(containerWidth, containerHeight) * 0.8;
-      canvas.width = size;
-      canvas.height = size;
-    };
+    // Define constants first
+    const MATRIX_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*+-./:;<=>?[]^_`{|}~¦";
+    const MATRIX_COLORS = [
+      "#00ff00", // Bright green
+      "#33ff33",
+      "#66ff66",
+      "#99ff99",
+      "#ccffcc",
+      "#ffffff", // White for the leading character
+    ];
 
-    // Initial size setup and window resize listener
-    updateCanvasSize();
-    window.addEventListener("resize", updateCanvasSize);
-
-    const SCREEN_WIDTH = 50;
-    const SCREEN_HEIGHT = 50;
+    // Initial constants
+    let SCREEN_WIDTH = Math.ceil(window.innerWidth / 20);
+    let SCREEN_HEIGHT = Math.ceil(window.innerHeight / 20);
     const R1 = 0.5;
     const R2 = 1.0;
-    const K2 = 10;
-    const K1 = (SCREEN_WIDTH * K2 * 3) / (8 * (R1 + R2));
+    const K2 = 5;
+    const K1 = (Math.min(SCREEN_WIDTH, SCREEN_HEIGHT) * K2 * 3) / (8 * (R1 + R2));
+
+    let output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
+    let zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
+    let time = 0;
+    let A = 0,
+      B = 0;
+    let burstProgress = -1;
+    let lastBurstTime = 0;
+
+    // Function to initialize matrix columns
+    const initializeMatrixColumns = () => {
+      return Array(SCREEN_WIDTH)
+        .fill(0)
+        .map(() => ({
+          y: Math.random() * SCREEN_HEIGHT * 2 - SCREEN_HEIGHT,
+          // Slower base speed with more variation
+          speed: 0.05 + Math.random() * 0.15, // Changed from 0.2-0.5 to 0.05-0.2
+          length: 5 + Math.floor(Math.random() * 15),
+          chars: Array(20)
+            .fill(0)
+            .map(() => MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)]),
+          lastUpdate: 0,
+          updateInterval: 100 + Math.random() * 200, // Changed from 50-150 to 100-300
+          // Add dynamic speed variation
+          speedCycle: Math.random() * Math.PI * 2,
+          speedVariation: 0.02 + Math.random() * 0.03, // Small speed variation
+        }));
+    };
+
+    // Update the canvas size function
+    const updateCanvasSize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // Adjust the screen dimensions based on the viewport
+      SCREEN_WIDTH = Math.ceil(window.innerWidth / 20);
+      SCREEN_HEIGHT = Math.ceil(window.innerHeight / 20);
+
+      // Reinitialize arrays with new dimensions
+      output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
+      zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
+
+      // Reinitialize matrix columns for the new width
+      MATRIX_COLUMNS = initializeMatrixColumns();
+    };
+
+    let MATRIX_COLUMNS = initializeMatrixColumns();
+
+    // Initial setup
+    updateCanvasSize();
+    window.addEventListener("resize", updateCanvasSize);
 
     // Add breathing effect base frequency
     let breathePhase = 0;
@@ -63,39 +112,6 @@ export default function RotatingObject() {
     ];
 
     const CHARS = "✧●◆△⬡*.✦★"; // Added more varied characters
-
-    let output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
-    let zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
-    let time = 0;
-    let A = 0,
-      B = 0;
-    let burstProgress = -1; // -1 means no burst active
-    let lastBurstTime = 0;
-
-    // Add after the existing constants
-    const MATRIX_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*+-./:;<=>?[]^_`{|}~¦";
-    const MATRIX_COLUMNS = Array(SCREEN_WIDTH)
-      .fill(0)
-      .map(() => ({
-        y: Math.floor(Math.random() * SCREEN_HEIGHT), // Starting position
-        speed: 0.2 + Math.random() * 0.3, // Random speed
-        length: 5 + Math.floor(Math.random() * 15), // Trail length
-        chars: Array(20)
-          .fill(0)
-          .map(() => MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)]),
-        lastUpdate: 0,
-        updateInterval: 50 + Math.random() * 100, // Random update interval for characters
-      }));
-
-    // Add matrix color constants
-    const MATRIX_COLORS = [
-      "#00ff00", // Bright green
-      "#33ff33",
-      "#66ff66",
-      "#99ff99",
-      "#ccffcc",
-      "#ffffff", // White for the leading character
-    ];
 
     function renderFrame() {
       output.fill(" ");
@@ -296,39 +312,37 @@ export default function RotatingObject() {
       for (let x = 0; x < SCREEN_WIDTH; x++) {
         const column = MATRIX_COLUMNS[x];
 
-        // Update character positions
-        column.y += column.speed;
+        // Update character positions with dynamic speed
+        column.speedCycle += 0.01; // Slowly cycle the speed variation
+        const currentSpeed = column.speed + Math.sin(column.speedCycle) * column.speedVariation;
+        column.y += currentSpeed;
+
         if (column.y > SCREEN_HEIGHT + column.length) {
           column.y = -column.length;
-          column.speed = 0.2 + Math.random() * 0.3;
+          // Reset with new random slow speed when recycling
+          column.speed = 0.05 + Math.random() * 0.15;
           column.length = 5 + Math.floor(Math.random() * 15);
-        }
-
-        // Update characters periodically
-        if (Date.now() - column.lastUpdate > column.updateInterval) {
-          column.chars = column.chars.map(() => MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)]);
-          column.lastUpdate = Date.now();
+          column.speedCycle = Math.random() * Math.PI * 2;
+          column.speedVariation = 0.02 + Math.random() * 0.03;
         }
 
         // Render the column
         for (let i = 0; i < column.length; i++) {
           const y = Math.floor(column.y) - i;
           if (y >= 0 && y < SCREEN_HEIGHT) {
-            const pos = x + y * SCREEN_WIDTH;
-            if (output[pos] === " ") {
-              // Only draw matrix effect in empty spaces
-              const char = column.chars[i % column.chars.length];
-              const fadeIndex = Math.floor((i / column.length) * MATRIX_COLORS.length);
+            const char = column.chars[i % column.chars.length];
+            const fadeIndex = Math.floor((i / column.length) * MATRIX_COLORS.length);
 
-              context.fillStyle = MATRIX_COLORS[fadeIndex];
-              context.shadowBlur = i === 0 ? 15 : 5; // Stronger glow for leading character
-              context.shadowColor = MATRIX_COLORS[0];
+            // Calculate actual screen positions
+            const screenX = (x / SCREEN_WIDTH) * canvas.width;
+            const screenY = (y / SCREEN_HEIGHT) * canvas.height;
 
-              // Adjust opacity based on position in trail
-              context.globalAlpha = 1 - i / column.length;
-              context.fillText(char, startX + x * charSize, startY + y * charSize);
-              context.globalAlpha = 1;
-            }
+            context.fillStyle = MATRIX_COLORS[fadeIndex];
+            context.shadowBlur = i === 0 ? 15 : 5;
+            context.shadowColor = MATRIX_COLORS[0];
+            context.globalAlpha = 1 - i / column.length;
+            context.fillText(char, screenX, screenY);
+            context.globalAlpha = 1;
           }
         }
       }
@@ -371,8 +385,8 @@ export default function RotatingObject() {
   }
 
   return (
-    <div className="w-full h-[100vh] flex items-center justify-center bg-[#000810] p-8">
-      <canvas ref={canvasRef} className="bg-[#000810]" />
+    <div className="fixed inset-0 bg-[#000810]">
+      <canvas ref={canvasRef} className="w-full h-full" />
     </div>
   );
 }
