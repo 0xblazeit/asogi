@@ -47,6 +47,21 @@ export default function RotatingObject() {
       "#ff1493", // Added deep pink
     ];
 
+    // Add bright versions of the colors for bursts
+    const BRIGHT_COLORS = [
+      "#4a4a8e", // Much brighter versions
+      "#4661ae",
+      "#3f84d0",
+      "#54c0f0",
+      "#b0f6ff",
+      "#e2ffff",
+      "#ffffff",
+      "#80ffff",
+      "#c0ffff",
+      "#ff80ff",
+      "#ff74c3",
+    ];
+
     const CHARS = "✧●◆△⬡*.✦★"; // Added more varied characters
 
     let output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
@@ -54,6 +69,8 @@ export default function RotatingObject() {
     let time = 0;
     let A = 0,
       B = 0;
+    let burstProgress = -1; // -1 means no burst active
+    let lastBurstTime = 0;
 
     function renderFrame() {
       output.fill(" ");
@@ -74,6 +91,28 @@ export default function RotatingObject() {
       const pulse = Math.sin(time * 1.5) * 0.3 + Math.sin(time * 0.7) * 0.2 + Math.sin(time * 0.3) * 0.1; // Added slower wave
 
       const secondaryPulse = Math.cos(time * 0.7) * 0.2 + Math.cos(time * 1.2) * 0.15 + Math.cos(time * 0.4) * 0.1; // Added slower wave
+
+      // Handle color bursts
+      const timeBetweenBursts = 2000; // More frequent bursts (2 seconds)
+      const burstChance = 0.5; // 50% chance of burst
+      const currentTime = Date.now();
+
+      // Check if we should start a new burst
+      if (burstProgress === -1 && currentTime - lastBurstTime > timeBetweenBursts) {
+        if (Math.random() < burstChance) {
+          burstProgress = 0;
+          lastBurstTime = currentTime;
+        }
+      }
+
+      // Update burst progress if active
+      if (burstProgress >= 0) {
+        burstProgress += 0.015; // Slower burst wave
+        if (burstProgress > 1.5) {
+          // Shorter travel distance
+          burstProgress = -1;
+        }
+      }
 
       for (let theta = 0; theta < 2 * Math.PI; theta += 0.07) {
         const cosTheta = Math.cos(theta);
@@ -193,7 +232,36 @@ export default function RotatingObject() {
           if (char !== " ") {
             const luminanceIndex = CHARS.indexOf(char);
             const colorIndex = Math.floor((luminanceIndex / CHARS.length) * COLORS.length);
-            context.fillStyle = COLORS[Math.min(colorIndex, COLORS.length - 1)];
+
+            // Calculate distance from center for burst effect
+            const centerX = SCREEN_WIDTH / 2;
+            const centerY = SCREEN_HEIGHT / 2;
+            const distanceFromCenter =
+              Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2)) /
+              Math.sqrt(Math.pow(SCREEN_WIDTH / 2, 2) + Math.pow(SCREEN_HEIGHT / 2, 2));
+
+            // Apply burst effect if active
+            if (burstProgress >= 0) {
+              const burstDistance = Math.abs(distanceFromCenter - burstProgress);
+              const burstEffect = Math.max(0, 1 - burstDistance * 3); // Wider burst wave (changed from 5 to 3)
+
+              if (burstEffect > 0) {
+                // Add extra glow during burst
+                context.shadowBlur = 25; // Increased glow
+                context.shadowColor = BRIGHT_COLORS[Math.min(colorIndex, BRIGHT_COLORS.length - 1)];
+
+                // Interpolate with higher factor for more intensity
+                const normalColor = COLORS[Math.min(colorIndex, COLORS.length - 1)];
+                const brightColor = BRIGHT_COLORS[Math.min(colorIndex, BRIGHT_COLORS.length - 1)];
+                context.fillStyle = interpolateColors(normalColor, brightColor, burstEffect * 1.5);
+              } else {
+                context.shadowBlur = 20;
+                context.fillStyle = COLORS[Math.min(colorIndex, COLORS.length - 1)];
+              }
+            } else {
+              context.fillStyle = COLORS[Math.min(colorIndex, COLORS.length - 1)];
+            }
+
             context.fillText(char, startX + x * charSize, startY + (y + 1) * charSize);
           }
         }
@@ -212,6 +280,25 @@ export default function RotatingObject() {
       window.removeEventListener("resize", updateCanvasSize);
     };
   }, []);
+
+  // Add color interpolation helper function
+  function interpolateColors(color1, color2, factor) {
+    const r1 = parseInt(color1.substring(1, 3), 16);
+    const g1 = parseInt(color1.substring(3, 5), 16);
+    const b1 = parseInt(color1.substring(5, 7), 16);
+
+    const r2 = parseInt(color2.substring(1, 3), 16);
+    const g2 = parseInt(color2.substring(3, 5), 16);
+    const b2 = parseInt(color2.substring(5, 7), 16);
+
+    const r = Math.round(r1 + (r2 - r1) * factor);
+    const g = Math.round(g1 + (g2 - g1) * factor);
+    const b = Math.round(b1 + (b2 - b1) * factor);
+
+    return `#${(r < 16 ? "0" : "") + r.toString(16)}${(g < 16 ? "0" : "") + g.toString(16)}${
+      (b < 16 ? "0" : "") + b.toString(16)
+    }`;
+  }
 
   return (
     <div className="w-full h-[100vh] flex items-center justify-center bg-[#000810] p-8">
