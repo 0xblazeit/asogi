@@ -120,6 +120,36 @@ export default function RotatingObject({ showMatrixEffect = false }) {
 
     const CHARS = "✧●◆△⬡*.✦★"; // Added more varied characters
 
+    // Add these constants near the top of useEffect
+    const OSCILLATION_SPOTS = Array(5)
+      .fill(0)
+      .map(() => ({
+        theta: Math.random() * 2 * Math.PI,
+        phi: Math.random() * 2 * Math.PI,
+        radius: 0.2 + Math.random() * 0.3, // Radius of influence
+        frequency: 0.5 + Math.random() * 2, // How fast it pulses
+        amplitude: 0.2 + Math.random() * 0.4, // How strong the effect is
+        lifetime: 0, // Current lifetime of the hotspot
+        maxLifetime: 100 + Math.random() * 200, // How long it lasts before relocating
+      }));
+
+    // Add this function before renderFrame
+    const updateOscillationSpots = () => {
+      OSCILLATION_SPOTS.forEach((spot) => {
+        spot.lifetime += 1;
+        if (spot.lifetime > spot.maxLifetime) {
+          // Relocate the oscillation spot
+          spot.theta = Math.random() * 2 * Math.PI;
+          spot.phi = Math.random() * 2 * Math.PI;
+          spot.radius = 0.2 + Math.random() * 0.3;
+          spot.frequency = 0.5 + Math.random() * 2;
+          spot.amplitude = 0.2 + Math.random() * 0.4;
+          spot.lifetime = 0;
+          spot.maxLifetime = 100 + Math.random() * 200;
+        }
+      });
+    };
+
     function renderFrame() {
       output.fill(" ");
       zbuffer.fill(0);
@@ -162,6 +192,9 @@ export default function RotatingObject({ showMatrixEffect = false }) {
         }
       }
 
+      // Update oscillation spots
+      updateOscillationSpots();
+
       for (let theta = 0; theta < 2 * Math.PI; theta += 0.06) {
         const cosTheta = Math.cos(theta);
         const sinTheta = Math.sin(theta);
@@ -169,6 +202,31 @@ export default function RotatingObject({ showMatrixEffect = false }) {
         for (let phi = 0; phi < 2 * Math.PI; phi += 0.015) {
           const cosPhi = Math.cos(phi);
           const sinPhi = Math.sin(phi);
+
+          // Calculate influence from nearby oscillation spots
+          const sizeMultiplier =
+            1 +
+            OSCILLATION_SPOTS.reduce((acc, spot) => {
+              const distanceTheta = Math.min(
+                Math.abs(theta - spot.theta),
+                Math.abs(theta - spot.theta + 2 * Math.PI),
+                Math.abs(theta - spot.theta - 2 * Math.PI)
+              );
+              const distancePhi = Math.min(
+                Math.abs(phi - spot.phi),
+                Math.abs(phi - spot.phi + 2 * Math.PI),
+                Math.abs(phi - spot.phi - 2 * Math.PI)
+              );
+
+              const distance = Math.sqrt(distanceTheta * distanceTheta + distancePhi * distancePhi);
+
+              if (distance < spot.radius) {
+                const falloff = 1 - distance / spot.radius;
+                const oscillation = Math.sin(time * spot.frequency) * spot.amplitude;
+                return acc + oscillation * falloff * Math.pow(1 - spot.lifetime / spot.maxLifetime, 2);
+              }
+              return acc;
+            }, 0);
 
           // Enhanced fluid morphing with multiple frequencies
           const morphFactor =
@@ -204,14 +262,13 @@ export default function RotatingObject({ showMatrixEffect = false }) {
 
           // More fluid shape deformation
           const circleX =
-            dynamicR2 +
-            dynamicR1 * cosTheta * (1 + 0.3 * Math.sin(3 * phi + time)) +
+            (dynamicR2 + dynamicR1 * cosTheta * (1 + 0.3 * Math.sin(3 * phi + time))) * sizeMultiplier +
             0.2 * Math.sin(theta * 4 + time * 1.5) +
             0.15 * Math.cos(phi * 5 + time * 0.8) +
             0.1 * Math.sin(theta * 2 + phi * 2 + time * 0.5); // Added interweaving pattern
 
           const circleY =
-            dynamicR1 * sinTheta * (1 + 0.2 * Math.cos(2 * theta + time)) +
+            dynamicR1 * sinTheta * (1 + 0.2 * Math.cos(2 * theta + time)) * sizeMultiplier +
             0.2 * Math.cos(phi * 3 + time * 2) +
             0.15 * Math.sin(theta * 6 + time * 1.2) +
             0.1 * Math.cos(theta * 3 + phi * 4 + time * 0.6); // Added flowing pattern
