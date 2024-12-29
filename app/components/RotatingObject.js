@@ -1,23 +1,81 @@
 "use client";
 import { useEffect, useRef } from "react";
 
-export default function RotatingObject({ showMatrixEffect = false }) {
+export default function RotatingObject({ walletAddress = "" }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
 
-    // Define constants first
-    const MATRIX_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*+-./:;<=>?[]^_`{|}~¦";
-    const MATRIX_COLORS = [
-      "#00ff00", // Bright green
-      "#33ff33",
-      "#66ff66",
-      "#99ff99",
-      "#ccffcc",
-      "#ffffff", // White for the leading character
-    ];
+    // Generate unique parameters from wallet address
+    const generateUniqueParams = (address) => {
+      if (!address) return null;
+
+      // Break the 42-character address (minus '0x') into segments
+      const colorSegment = address.slice(2, 8); // 6 chars: base colors
+      const morphSegment = address.slice(8, 16); // 8 chars: morphing behavior
+      const speedSegment = address.slice(16, 20); // 4 chars: animation speed
+      const patternSegment = address.slice(20, 28); // 8 chars: pattern complexity
+      const pulseSegment = address.slice(28, 34); // 6 chars: pulsing effects
+      const glowSegment = address.slice(34, 40); // 6 chars: glow intensity
+      const shapeSegment = address.slice(40, 42); // 2 chars: shape variation
+
+      return {
+        // Color parameters
+        baseHue: parseInt(colorSegment, 16) % 360,
+        saturationOffset: parseInt(colorSegment.slice(0, 2), 16) % 50,
+
+        // Morphing parameters
+        morphIntensity: 0.5 + (parseInt(morphSegment, 16) / 16 ** 8) * 0.5,
+        morphFrequency: 0.5 + parseInt(morphSegment.slice(0, 4), 16) / 16 ** 4,
+
+        // Speed parameters
+        speedFactor: 0.5 + parseInt(speedSegment, 16) / 16 ** 4,
+        rotationDirection: parseInt(speedSegment.slice(0, 2), 16) % 2 === 0 ? 1 : -1,
+
+        // Pattern parameters
+        patternScale: 0.5 + parseInt(patternSegment, 16) / 16 ** 8,
+        patternComplexity: 1 + (parseInt(patternSegment.slice(0, 4), 16) % 5),
+
+        // Pulse parameters
+        pulseIntensity: 0.3 + (parseInt(pulseSegment, 16) / 16 ** 6) * 0.7,
+        pulseFrequency: 0.5 + parseInt(pulseSegment.slice(0, 3), 16) / 16 ** 3,
+
+        // Glow parameters
+        glowIntensity: 0.4 + (parseInt(glowSegment, 16) / 16 ** 6) * 0.6,
+        glowRadius: 10 + (parseInt(glowSegment.slice(0, 3), 16) % 20),
+
+        // Shape parameters
+        shapeVariation: parseInt(shapeSegment, 16) / 16 ** 2,
+      };
+    };
+
+    const uniqueParams = generateUniqueParams(walletAddress);
+
+    // Modify color palettes based on wallet address
+    const COLORS = uniqueParams
+      ? [
+          `hsl(${uniqueParams.baseHue}, ${70 + uniqueParams.saturationOffset}%, 15%)`,
+          `hsl(${uniqueParams.baseHue}, ${80 + uniqueParams.saturationOffset}%, 25%)`,
+          `hsl(${uniqueParams.baseHue}, ${90 + uniqueParams.saturationOffset}%, 35%)`,
+          `hsl(${(uniqueParams.baseHue + 30) % 360}, 100%, 50%)`,
+          `hsl(${(uniqueParams.baseHue + 60) % 360}, 100%, 55%)`,
+          `hsl(${(uniqueParams.baseHue + 90) % 360}, 100%, 60%)`,
+        ]
+      : [
+          "#1a1a2e",
+          "#16213e",
+          "#0f3460",
+          "#ff4e00", // Bright orange
+          "#ff7f50", // Coral
+          "#ff6b6b", // Warm red
+          "#ffd700", // Gold
+          "#ff8c00", // Dark orange
+          "#ff5722", // Deep orange
+          "#ff3d00", // Bright orange-red
+          "#ff1744", // Vibrant red
+        ];
 
     // Initial constants
     let SCREEN_WIDTH = Math.ceil(window.innerWidth / 15);
@@ -37,29 +95,10 @@ export default function RotatingObject({ showMatrixEffect = false }) {
 
     // Add dynamic speed variations
     const dynamicSpeed = {
-      base: 1 + Math.sin(time * 0.5) * 0.3,
-      pulse: Math.sin(time * 2) * 0.4 + Math.cos(time) * 0.3,
-      twist: Math.cos(time * 1.5) * 0.5,
-    };
-
-    // Function to initialize matrix columns
-    const initializeMatrixColumns = () => {
-      return Array(SCREEN_WIDTH)
-        .fill(0)
-        .map(() => ({
-          y: Math.random() * SCREEN_HEIGHT * 2 - SCREEN_HEIGHT,
-          // Slower base speed with more variation
-          speed: 0.05 + Math.random() * 0.15, // Changed from 0.2-0.5 to 0.05-0.2
-          length: 5 + Math.floor(Math.random() * 15),
-          chars: Array(20)
-            .fill(0)
-            .map(() => MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)]),
-          lastUpdate: 0,
-          updateInterval: 100 + Math.random() * 200, // Changed from 50-150 to 100-300
-          // Add dynamic speed variation
-          speedCycle: Math.random() * Math.PI * 2,
-          speedVariation: 0.02 + Math.random() * 0.03, // Small speed variation
-        }));
+      base: (1 + Math.sin(time * 0.5) * 0.3) * uniqueParams.speedFactor,
+      pulse:
+        Math.sin(time * 2 * uniqueParams.pulseFrequency) * 0.4 + Math.cos(time * uniqueParams.pulseFrequency) * 0.3,
+      twist: Math.cos(time * 1.5) * 0.5 * uniqueParams.morphIntensity,
     };
 
     // Update the canvas size function
@@ -74,12 +113,7 @@ export default function RotatingObject({ showMatrixEffect = false }) {
       // Reinitialize arrays with new dimensions
       output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
       zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
-
-      // Reinitialize matrix columns for the new width
-      MATRIX_COLUMNS = initializeMatrixColumns();
     };
-
-    let MATRIX_COLUMNS = initializeMatrixColumns();
 
     // Initial setup
     updateCanvasSize();
@@ -87,21 +121,6 @@ export default function RotatingObject({ showMatrixEffect = false }) {
 
     // Add breathing effect base frequency
     let breathePhase = 0;
-
-    // Update the color palettes with more vibrant warm colors
-    const COLORS = [
-      "#1a1a2e",
-      "#16213e",
-      "#0f3460",
-      "#ff4e00", // Bright orange
-      "#ff7f50", // Coral
-      "#ff6b6b", // Warm red
-      "#ffd700", // Gold
-      "#ff8c00", // Dark orange
-      "#ff5722", // Deep orange
-      "#ff3d00", // Bright orange-red
-      "#ff1744", // Vibrant red
-    ];
 
     // Update bright versions with even more intense warm colors
     const BRIGHT_COLORS = [
@@ -236,10 +255,10 @@ export default function RotatingObject({ showMatrixEffect = false }) {
       // Enhanced fluid motion
       const waveSpeed = 1.2;
       time += 0.02;
-      breathePhase += 0.015;
+      breathePhase += 0.015 * uniqueParams.pulseFrequency;
 
       // Complex organic pulsing with multiple harmonics
-      const breathe = Math.sin(breathePhase) * 0.3;
+      const breathe = Math.sin(breathePhase) * 0.3 * uniqueParams.pulseIntensity;
       const pulse = Math.sin(time * 1.5) * 0.3 + Math.sin(time * 0.7) * 0.2 + Math.sin(time * 0.3) * 0.1; // Added slower wave
 
       const secondaryPulse = Math.cos(time * 0.7) * 0.2 + Math.cos(time * 1.2) * 0.15 + Math.cos(time * 0.4) * 0.1; // Added slower wave
@@ -340,17 +359,11 @@ export default function RotatingObject({ showMatrixEffect = false }) {
           const dynamicR2 = R2 * (1 + electricPulse + secondaryPulse + vortexEffect + breathe * 0.5);
 
           // More fluid shape deformation
-          const circleX =
-            (dynamicR2 + dynamicR1 * cosTheta * (1 + 0.3 * Math.sin(3 * phi + time))) * sizeMultiplier +
-            0.2 * Math.sin(theta * 4 + time * 1.5) +
-            0.15 * Math.cos(phi * 5 + time * 0.8) +
-            0.1 * Math.sin(theta * 2 + phi * 2 + time * 0.5); // Added interweaving pattern
+          const shapeDeform = uniqueParams.shapeVariation * Math.sin(theta * uniqueParams.patternComplexity + time);
 
-          const circleY =
-            dynamicR1 * sinTheta * (1 + 0.2 * Math.cos(2 * theta + time)) * sizeMultiplier +
-            0.2 * Math.cos(phi * 3 + time * 2) +
-            0.15 * Math.sin(theta * 6 + time * 1.2) +
-            0.1 * Math.cos(theta * 3 + phi * 4 + time * 0.6); // Added flowing pattern
+          const circleX = (dynamicR2 + dynamicR1 * cosTheta * (1 + 0.3 * Math.sin(3 * phi + time))) * (1 + shapeDeform);
+
+          const circleY = dynamicR1 * sinTheta * (1 + 0.2 * Math.cos(2 * theta + time)) * (1 + shapeDeform);
 
           // Enhanced electric field effect with more complexity
           const electricField =
@@ -406,7 +419,7 @@ export default function RotatingObject({ showMatrixEffect = false }) {
       const startY = (canvas.height - SCREEN_HEIGHT * charSize) / 2;
 
       // Enhanced glow effect
-      context.shadowBlur = 20 + Math.sin(time * 3) * 5;
+      context.shadowBlur = uniqueParams.glowRadius + Math.sin(time * 3) * 5 * uniqueParams.glowIntensity;
       context.shadowColor = `hsl(${(time * 70) % 360}, 100%, ${50 + Math.sin(time * 2) * 20}%)`;
 
       for (let y = 0; y < SCREEN_HEIGHT; y++) {
@@ -479,52 +492,12 @@ export default function RotatingObject({ showMatrixEffect = false }) {
         }
       }
 
-      // Wrap matrix effect in conditional
-      if (showMatrixEffect) {
-        // After rendering the rotating object, add the matrix effect
-        for (let x = 0; x < SCREEN_WIDTH; x++) {
-          const column = MATRIX_COLUMNS[x];
-
-          // Update character positions with dynamic speed
-          column.speedCycle += 0.015;
-          const currentSpeed = column.speed + Math.sin(column.speedCycle) * (column.speedVariation * 1.5);
-          column.y += currentSpeed * dynamicSpeed.base;
-
-          if (column.y > SCREEN_HEIGHT + column.length) {
-            column.y = -column.length;
-            column.speed = 0.05 + Math.random() * 0.15;
-            column.length = 5 + Math.floor(Math.random() * 15);
-            column.speedCycle = Math.random() * Math.PI * 2;
-            column.speedVariation = 0.02 + Math.random() * 0.03;
-          }
-
-          // Render the column
-          for (let i = 0; i < column.length; i++) {
-            const y = Math.floor(column.y) - i;
-            if (y >= 0 && y < SCREEN_HEIGHT) {
-              const char = column.chars[i % column.chars.length];
-              const fadeIndex = Math.floor((i / column.length) * MATRIX_COLORS.length);
-
-              const screenX = (x / SCREEN_WIDTH) * canvas.width;
-              const screenY = (y / SCREEN_HEIGHT) * canvas.height;
-
-              context.fillStyle = MATRIX_COLORS[fadeIndex];
-              context.shadowBlur = i === 0 ? 15 : 5;
-              context.shadowColor = MATRIX_COLORS[0];
-              context.globalAlpha = 1 - i / column.length;
-              context.fillText(char, screenX, screenY);
-              context.globalAlpha = 1;
-            }
-          }
-        }
-      }
-
       // Reset shadow properties for next frame
       context.shadowBlur = 20;
       context.shadowColor = `hsl(${(time * 50) % 360}, 100%, 50%)`;
 
-      A += 0.005 * (1 + pulse * 0.3 + breathe * 0.25);
-      B += 0.004 * (1 + secondaryPulse * 0.3 + breathe * 0.2);
+      A += 0.005 * uniqueParams.speedFactor * uniqueParams.rotationDirection;
+      B += 0.004 * uniqueParams.speedFactor * uniqueParams.rotationDirection;
 
       requestAnimationFrame(renderFrame);
     }
@@ -534,7 +507,7 @@ export default function RotatingObject({ showMatrixEffect = false }) {
     return () => {
       window.removeEventListener("resize", updateCanvasSize);
     };
-  }, [showMatrixEffect]);
+  }, [walletAddress]);
 
   // Add color interpolation helper function
   function interpolateColors(color1, color2, factor) {
