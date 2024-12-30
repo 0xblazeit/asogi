@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useRef } from "react";
 
+const easeOutQuart = (x) => 1 - Math.pow(1 - x, 4);
+const easeInQuart = (x) => x * x * x * x;
+const easeInOutQuart = (x) => (x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2);
+
 export default function RotatingObject({ walletAddress = "" }) {
   const canvasRef = useRef(null);
 
@@ -279,6 +283,96 @@ export default function RotatingObject({ walletAddress = "" }) {
       });
     };
 
+    // Add this new configuration after HEAT_SPOTS
+    const CONCENTRATION_STATE = {
+      active: false,
+      progress: 0,
+      duration: 0,
+      maxDuration: 0,
+      centerTheta: 0,
+      centerPhi: 0,
+      intensity: 0,
+      pulseFrequency: 0,
+      lastTrigger: 0,
+      cooldownPeriod: 8000, // Increased from 2000 to 8 seconds
+      shrinkFactor: 0.9,
+    };
+
+    // Add these helper functions before renderFrame
+    const updateConcentrationState = (time) => {
+      const currentTime = Date.now();
+
+      if (
+        !CONCENTRATION_STATE.active &&
+        currentTime - CONCENTRATION_STATE.lastTrigger > CONCENTRATION_STATE.cooldownPeriod &&
+        Math.random() < 0.005 // Decreased from 0.05 to 0.005 (0.5% chance per frame)
+      ) {
+        CONCENTRATION_STATE.active = true;
+        CONCENTRATION_STATE.progress = 0;
+        CONCENTRATION_STATE.duration = 0;
+        CONCENTRATION_STATE.maxDuration = 240; // Fixed duration for smoother timing
+        CONCENTRATION_STATE.centerTheta = Math.random() * 2 * Math.PI;
+        CONCENTRATION_STATE.centerPhi = Math.random() * 2 * Math.PI;
+        CONCENTRATION_STATE.intensity = 1.2 + Math.random() * 0.3;
+        CONCENTRATION_STATE.pulseFrequency = 2 + Math.random() * 2;
+        CONCENTRATION_STATE.lastTrigger = currentTime;
+        CONCENTRATION_STATE.shrinkFactor = 0.85 + Math.random() * 0.1;
+      }
+
+      if (CONCENTRATION_STATE.active) {
+        CONCENTRATION_STATE.duration++;
+
+        // Smoother transition using phases
+        const totalDuration = CONCENTRATION_STATE.maxDuration;
+        const shrinkDuration = totalDuration * 0.3; // 30% of total time
+        const holdDuration = totalDuration * 0.4; // 40% of total time
+        const growDuration = totalDuration * 0.3; // 30% of total time
+
+        if (CONCENTRATION_STATE.duration < shrinkDuration) {
+          // Shrinking phase
+          const t = CONCENTRATION_STATE.duration / shrinkDuration;
+          CONCENTRATION_STATE.progress = easeInQuart(t);
+        } else if (CONCENTRATION_STATE.duration < shrinkDuration + holdDuration) {
+          // Hold phase
+          CONCENTRATION_STATE.progress = 1;
+        } else if (CONCENTRATION_STATE.duration < totalDuration) {
+          // Growing phase
+          const t = (CONCENTRATION_STATE.duration - (shrinkDuration + holdDuration)) / growDuration;
+          CONCENTRATION_STATE.progress = 1 - easeOutQuart(t);
+        } else {
+          CONCENTRATION_STATE.active = false;
+        }
+      }
+    };
+
+    const getConcentrationEffect = (theta, phi, radius) => {
+      if (!CONCENTRATION_STATE.active) return 0;
+
+      const distanceTheta = Math.min(
+        Math.abs(theta - CONCENTRATION_STATE.centerTheta),
+        Math.abs(theta - CONCENTRATION_STATE.centerTheta + 2 * Math.PI),
+        Math.abs(theta - CONCENTRATION_STATE.centerTheta - 2 * Math.PI)
+      );
+
+      const distancePhi = Math.min(
+        Math.abs(phi - CONCENTRATION_STATE.centerPhi),
+        Math.abs(phi - CONCENTRATION_STATE.centerPhi + 2 * Math.PI),
+        Math.abs(phi - CONCENTRATION_STATE.centerPhi - 2 * Math.PI)
+      );
+
+      const distance = Math.sqrt(distanceTheta * distanceTheta + distancePhi * distancePhi);
+      // Much smaller maxRadius during concentration
+      const maxRadius = 0.3 - CONCENTRATION_STATE.progress * 0.2; // Reduced from 0.8 to 0.3
+
+      if (distance < maxRadius) {
+        const falloff = Math.pow(1 - distance / maxRadius, 3); // Sharper falloff (changed from 2 to 3)
+        const pulse = Math.sin(time * CONCENTRATION_STATE.pulseFrequency) * 0.7 + 0.3; // Stronger pulse
+        return falloff * CONCENTRATION_STATE.intensity * CONCENTRATION_STATE.progress * pulse;
+      }
+
+      return 0;
+    };
+
     function renderFrame() {
       output.fill(" ");
       zbuffer.fill(0);
@@ -327,6 +421,8 @@ export default function RotatingObject({ walletAddress = "" }) {
       // Add this function before renderFrame
       updateHeatSpots();
 
+      updateConcentrationState(time);
+
       for (let theta = 0; theta < 2 * Math.PI; theta += 0.06) {
         const cosTheta = Math.cos(theta);
         const sinTheta = Math.sin(theta);
@@ -334,6 +430,11 @@ export default function RotatingObject({ walletAddress = "" }) {
         for (let phi = 0; phi < 2 * Math.PI; phi += 0.015) {
           const cosPhi = Math.cos(phi);
           const sinPhi = Math.sin(phi);
+
+          // Calculate radius for the current position
+          const radius = Math.sqrt(
+            Math.pow(cosTheta * cosPhi, 2) + Math.pow(sinTheta * cosPhi, 2) + Math.pow(sinPhi, 2)
+          );
 
           // Calculate influence from nearby oscillation spots
           const sizeMultiplier =
@@ -365,11 +466,14 @@ export default function RotatingObject({ walletAddress = "" }) {
               return acc;
             }, 0);
 
-          // Enhanced fluid morphing with multiple frequencies
+          // Modify the morphFactor calculation to include concentration effect
+          const concentrationEffect = getConcentrationEffect(theta, phi, radius);
           const morphFactor =
-            Math.sin(time * waveSpeed * dynamicSpeed.base + theta * 3) * 0.4 +
-            Math.cos(time * 0.7 * dynamicSpeed.pulse + phi * 2) * 0.3 +
-            Math.sin(time * 0.5 * dynamicSpeed.twist + theta * 2) * 0.25;
+            (Math.sin(time * waveSpeed * dynamicSpeed.base + theta * 3) * 0.4 +
+              Math.cos(time * 0.7 * dynamicSpeed.pulse + phi * 2) * 0.3 +
+              Math.sin(time * 0.5 * dynamicSpeed.twist + theta * 2) * 0.25) *
+              (1 - concentrationEffect) + // Reduce normal morphing during concentration
+            concentrationEffect * Math.sin(time * 4 + theta * 8) * 0.8; // Add intense pulsing during concentration
 
           const electricPulse =
             Math.sin(time * 2.5 * dynamicSpeed.base + phi * 4) * 0.25 +
@@ -393,9 +497,13 @@ export default function RotatingObject({ walletAddress = "" }) {
             Math.cos(theta * 3 + phi * 3 + time * 0.8) * 0.15 +
             breathe * Math.sin(theta + phi) * 0.2; // Added breathing influence
 
-          // Dynamic radius with more organic combinations
-          const dynamicR1 = R1 * (1 + morphFactor + pulse + spiralEffect + twistEffect + breathe);
-          const dynamicR2 = R2 * (1 + electricPulse + secondaryPulse + vortexEffect + breathe * 0.5);
+          // Modify the dynamicR1 and dynamicR2 calculations
+          const concentrationShrink = CONCENTRATION_STATE.active
+            ? 0.1 + (1 - easeInOutQuart(CONCENTRATION_STATE.progress) * CONCENTRATION_STATE.shrinkFactor) * 0.9
+            : 1;
+          const dynamicR1 = R1 * (1 + morphFactor + pulse + spiralEffect + twistEffect + breathe) * concentrationShrink;
+          const dynamicR2 =
+            R2 * (1 + electricPulse + secondaryPulse + vortexEffect + breathe * 0.5) * concentrationShrink;
 
           // More fluid shape deformation
           const shapeDeform = uniqueParams.shapeVariation * Math.sin(theta * uniqueParams.patternComplexity + time);
