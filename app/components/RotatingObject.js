@@ -243,6 +243,42 @@ export default function RotatingObject({ walletAddress = "" }) {
       return effect;
     };
 
+    // Add this new constant after CHARS definition
+    const HEAT_SPOTS = Array(3)
+      .fill(0)
+      .map(() => ({
+        theta: Math.random() * 2 * Math.PI,
+        phi: Math.random() * 2 * Math.PI,
+        radius: 0.1 + Math.random() * 0.15, // Small concentrated areas
+        intensity: 0.8 + Math.random() * 0.2,
+        pulseSpeed: 0.5 + Math.random() * 1.5,
+        warmColor: [
+          "#FF4500", // Orange Red
+          "#FF6B35", // Burning Orange
+          "#FF8C42", // Deep Orange
+          "#FFB347", // Light Orange
+          "#FF7F50", // Coral
+        ][Math.floor(Math.random() * 5)],
+        lifetime: 0,
+        maxLifetime: 150 + Math.random() * 100,
+      }));
+
+    // Add this function before renderFrame
+    const updateHeatSpots = () => {
+      HEAT_SPOTS.forEach((spot) => {
+        spot.lifetime += 1;
+        if (spot.lifetime > spot.maxLifetime) {
+          // Relocate the heat spot
+          spot.theta = Math.random() * 2 * Math.PI;
+          spot.phi = Math.random() * 2 * Math.PI;
+          spot.radius = 0.1 + Math.random() * 0.15;
+          spot.lifetime = 0;
+          spot.maxLifetime = 150 + Math.random() * 100;
+          spot.warmColor = ["#FF4500", "#FF6B35", "#FF8C42", "#FFB347", "#FF7F50"][Math.floor(Math.random() * 5)];
+        }
+      });
+    };
+
     function renderFrame() {
       output.fill(" ");
       zbuffer.fill(0);
@@ -287,6 +323,9 @@ export default function RotatingObject({ walletAddress = "" }) {
 
       // Update oscillation spots
       updateOscillationSpots();
+
+      // Add this function before renderFrame
+      updateHeatSpots();
 
       for (let theta = 0; theta < 2 * Math.PI; theta += 0.06) {
         const cosTheta = Math.cos(theta);
@@ -436,54 +475,33 @@ export default function RotatingObject({ walletAddress = "" }) {
             const radius = Math.sqrt(relX * relX + relY * relY) / SCREEN_WIDTH;
             const theta = Math.atan2(relY, relX);
 
-            const energyEffect = calculateEnergyStreamEffect(theta, radius);
+            // Check if point is within any heat spot
+            const heatSpotEffect = HEAT_SPOTS.reduce((acc, spot) => {
+              const distanceTheta = Math.min(
+                Math.abs(theta - spot.theta),
+                Math.abs(theta - spot.theta + 2 * Math.PI),
+                Math.abs(theta - spot.theta - 2 * Math.PI)
+              );
+              const distancePhi = Math.abs(radius - spot.radius);
+              const distance = Math.sqrt(distanceTheta * distanceTheta + distancePhi * distancePhi);
 
-            // Calculate oscillation spot color influence
-            const spotEffect = OSCILLATION_SPOTS.reduce(
-              (acc, spot) => {
-                const distanceTheta = Math.min(
-                  Math.abs(theta - spot.theta),
-                  Math.abs(theta - spot.theta + 2 * Math.PI),
-                  Math.abs(theta - spot.theta - 2 * Math.PI)
-                );
-                const distance = Math.sqrt(distanceTheta * distanceTheta);
+              if (distance < spot.radius) {
+                const intensity = Math.pow(1 - distance / spot.radius, 2) * spot.intensity;
+                const pulse = (1 + Math.sin(time * spot.pulseSpeed)) * 0.5;
+                return Math.max(acc, intensity * pulse);
+              }
+              return acc;
+            }, 0);
 
-                if (distance < spot.radius) {
-                  const falloff = Math.pow(1 - distance / spot.radius, 2);
-                  return {
-                    intensity: acc.intensity + falloff * spot.intensity,
-                    hue: acc.hue + spot.color * falloff,
-                    weight: acc.weight + falloff,
-                  };
-                }
-                return acc;
-              },
-              { intensity: 0, hue: 0, weight: 0 }
-            );
-
-            // Enhanced edge glow effect
-            const edgeGlow = energyEffect.edgeGlow * (1 + Math.sin(time * 2 + theta * 3) * 0.3);
-            context.shadowBlur = 20 + energyEffect.intensity * 15 + edgeGlow * 20 + spotEffect.intensity * 25;
-
-            if (energyEffect.intensity > 0.1 || edgeGlow > 0.3 || spotEffect.intensity > 0.1) {
-              const baseHue = (time * 30 + energyEffect.colorShift * 60) % 360; // Slower color cycle
-              const spotHue = spotEffect.weight > 0 ? spotEffect.hue / spotEffect.weight : 30; // Default to orange
-              const finalHue = spotEffect.intensity > 0.3 ? spotHue : baseHue;
-
-              const saturation = 100;
-              // Increase lightness for more vibrant appearance
-              const lightness = 55 + energyEffect.intensity * 35 + edgeGlow * 25 + spotEffect.intensity * 45;
-
-              // Add more warmth to the glow
-              const energyColor = `hsl(${finalHue}, ${saturation}%, ${lightness}%)`;
-              const edgeColor = `hsl(${(finalHue + 15) % 360}, ${saturation}%, ${Math.min(lightness + 10, 100)}%)`;
-
-              // Increase glow intensity for focused areas
-              context.shadowBlur = 25 + energyEffect.intensity * 20 + edgeGlow * 25 + spotEffect.intensity * 30;
-
-              context.shadowColor = edgeGlow > 0.3 ? edgeColor : energyColor;
-              context.fillStyle = energyColor;
+            if (heatSpotEffect > 0.1) {
+              // Apply warm color with intensity
+              const baseColor = HEAT_SPOTS[0].warmColor;
+              const intensity = Math.min(1, heatSpotEffect * 1.5);
+              context.shadowBlur = 15 + intensity * 25;
+              context.shadowColor = baseColor;
+              context.fillStyle = baseColor;
             } else {
+              // Use original color scheme
               context.fillStyle = COLORS[colorIndex];
             }
 
