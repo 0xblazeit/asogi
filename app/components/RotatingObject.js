@@ -149,7 +149,7 @@ export default function RotatingObject({ walletAddress = "" }) {
           "#ff6b6b",
           "#ffd700",
           "#ff8c00",
-          "#ff5722",
+          "#ff5252",
           "#ff3d00",
           "#ff1744",
         ];
@@ -168,23 +168,62 @@ export default function RotatingObject({ walletAddress = "" }) {
       twist: Math.cos(time * 1.5) * 0.5 * uniqueParams.morphIntensity,
     };
 
+    // Optimization: Pre-calculate expensive values
+    const preCalculated = {
+      sinValues: new Float32Array(Math.ceil(2 * Math.PI / PERFORMANCE_CONFIG.thetaStep)),
+      cosValues: new Float32Array(Math.ceil(2 * Math.PI / PERFORMANCE_CONFIG.thetaStep))
+    };
+
+    // Initialize preCalculated values
+    for (let i = 0; i < preCalculated.sinValues.length; i++) {
+      const angle = i * PERFORMANCE_CONFIG.thetaStep;
+      preCalculated.sinValues[i] = Math.sin(angle);
+      preCalculated.cosValues[i] = Math.cos(angle);
+    }
+
     // Update the canvas size function
     const updateCanvasSize = () => {
+      if (!canvas) return { permanentOutput: [], permanentZBuffer: new Float32Array() }; // Guard clause with return value
+      
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
 
       // Adjust the screen dimensions based on the viewport
-      const SCREEN_WIDTH = Math.ceil(window.innerWidth / PERFORMANCE_CONFIG.screenDivisor);
-      const SCREEN_HEIGHT = Math.ceil(window.innerHeight / PERFORMANCE_CONFIG.screenDivisor);
+      const SCREEN_WIDTH = Math.max(10, Math.ceil(window.innerWidth / PERFORMANCE_CONFIG.screenDivisor));
+      const SCREEN_HEIGHT = Math.max(10, Math.ceil(window.innerHeight / PERFORMANCE_CONFIG.screenDivisor));
 
-      // Reinitialize arrays with new dimensions
-      const output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
-      const zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
+      // Create new buffers with new dimensions
+      const newSize = SCREEN_WIDTH * SCREEN_HEIGHT;
+      const newOutput = new Array(newSize).fill(" ");
+      const newZBuffer = new Float32Array(newSize);
+
+      // Update preCalculated values if needed
+      const newThetaLength = Math.ceil(2 * Math.PI / PERFORMANCE_CONFIG.thetaStep);
+      if (preCalculated.sinValues.length !== newThetaLength) {
+        preCalculated.sinValues = new Float32Array(newThetaLength);
+        preCalculated.cosValues = new Float32Array(newThetaLength);
+        for (let i = 0; i < newThetaLength; i++) {
+          const angle = i * PERFORMANCE_CONFIG.thetaStep;
+          preCalculated.sinValues[i] = Math.sin(angle);
+          preCalculated.cosValues[i] = Math.cos(angle);
+        }
+      }
+
+      return { 
+        permanentOutput: newOutput, 
+        permanentZBuffer: newZBuffer 
+      };
     };
 
     // Initial setup
-    updateCanvasSize();
-    window.addEventListener("resize", updateCanvasSize);
+    let { permanentOutput, permanentZBuffer } = updateCanvasSize();
+    
+    // Add resize listener
+    window.addEventListener("resize", () => {
+      const newBuffers = updateCanvasSize();
+      permanentOutput = newBuffers.permanentOutput;
+      permanentZBuffer = newBuffers.permanentZBuffer;
+    });
 
     // Add breathing effect base frequency
     let breathePhase = 0;
@@ -533,23 +572,6 @@ export default function RotatingObject({ walletAddress = "" }) {
       while (angle < -Math.PI) angle += 2 * Math.PI;
       return angle;
     }
-
-    // Optimization: Pre-calculate expensive values
-    const preCalculated = {
-      sinValues: new Float32Array(Math.ceil(2 * Math.PI / PERFORMANCE_CONFIG.thetaStep)),
-      cosValues: new Float32Array(Math.ceil(2 * Math.PI / PERFORMANCE_CONFIG.thetaStep))
-    };
-
-    for (let i = 0; i < preCalculated.sinValues.length; i++) {
-      const angle = i * PERFORMANCE_CONFIG.thetaStep;
-      preCalculated.sinValues[i] = Math.sin(angle);
-      preCalculated.cosValues[i] = Math.cos(angle);
-    }
-
-    // Optimization: Create permanent buffers
-    const permanentOutput = new Array(Math.ceil(window.innerWidth / PERFORMANCE_CONFIG.screenDivisor) * 
-                                     Math.ceil(window.innerHeight / PERFORMANCE_CONFIG.screenDivisor)).fill(" ");
-    const permanentZBuffer = new Float32Array(permanentOutput.length);
 
     const renderFrame = () => {
       const now = Date.now();
