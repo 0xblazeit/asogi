@@ -57,40 +57,58 @@ export default function RotatingObject({ walletAddress = "" }) {
 
     const uniqueParams = generateUniqueParams(walletAddress);
 
-    // Modify color palettes based on wallet address
-    const COLORS = uniqueParams
-      ? [
-          `hsl(${uniqueParams.baseHue}, ${70 + uniqueParams.saturationOffset}%, 15%)`,
-          `hsl(${uniqueParams.baseHue}, ${80 + uniqueParams.saturationOffset}%, 25%)`,
-          `hsl(${uniqueParams.baseHue}, ${90 + uniqueParams.saturationOffset}%, 35%)`,
-          `hsl(${(uniqueParams.baseHue + 30) % 360}, 100%, 50%)`,
-          `hsl(${(uniqueParams.baseHue + 60) % 360}, 100%, 55%)`,
-          `hsl(${(uniqueParams.baseHue + 90) % 360}, 100%, 60%)`,
+    // Constants for shape geometry
+    const R1 = 0.6;
+    const R2 = 1.2;
+    const K2 = 5;
+
+    // Base color palette generation
+    const generateColorPalette = (baseHue, satOffset) => {
+      // Generate complementary and analogous colors
+      const complementaryHue = (baseHue + 180) % 360;
+      const analogousHue1 = (baseHue + 30) % 360;
+      const analogousHue2 = (baseHue - 30 + 360) % 360;
+      const splitComplementaryHue1 = (complementaryHue + 30) % 360;
+      const splitComplementaryHue2 = (complementaryHue - 30 + 360) % 360;
+
+      return {
+        base: [
+          `hsl(${baseHue}, ${70 + satOffset}%, 15%)`,
+          `hsl(${baseHue}, ${80 + satOffset}%, 25%)`,
+          `hsl(${baseHue}, ${90 + satOffset}%, 35%)`
+        ],
+        analogous: [
+          `hsl(${analogousHue1}, ${85 + satOffset}%, 45%)`,
+          `hsl(${analogousHue2}, ${85 + satOffset}%, 40%)`
+        ],
+        complementary: [
+          `hsl(${complementaryHue}, 100%, 50%)`,
+          `hsl(${splitComplementaryHue1}, 95%, 55%)`,
+          `hsl(${splitComplementaryHue2}, 95%, 45%)`
         ]
+      };
+    };
+
+    // Initialize base colors
+    const COLORS = uniqueParams
+      ? generateColorPalette(uniqueParams.baseHue, uniqueParams.saturationOffset).base.concat(
+          generateColorPalette(uniqueParams.baseHue, uniqueParams.saturationOffset).analogous,
+          generateColorPalette(uniqueParams.baseHue, uniqueParams.saturationOffset).complementary
+        )
       : [
           "#1a1a2e",
           "#16213e",
           "#0f3460",
-          "#ff4e00", // Bright orange
-          "#ff7f50", // Coral
-          "#ff6b6b", // Warm red
-          "#ffd700", // Gold
-          "#ff8c00", // Dark orange
-          "#ff5722", // Deep orange
-          "#ff3d00", // Bright orange-red
-          "#ff1744", // Vibrant red
+          "#ff4e00",
+          "#ff7f50",
+          "#ff6b6b",
+          "#ffd700",
+          "#ff8c00",
+          "#ff5722",
+          "#ff3d00",
+          "#ff1744",
         ];
 
-    // Initial constants
-    let SCREEN_WIDTH = Math.ceil(window.innerWidth / 15);
-    let SCREEN_HEIGHT = Math.ceil(window.innerHeight / 15);
-    const R1 = 0.6;
-    const R2 = 1.2;
-    const K2 = 5;
-    const K1 = (Math.min(SCREEN_WIDTH, SCREEN_HEIGHT) * K2 * 3) / (8 * (R1 + R2));
-
-    let output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
-    let zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
     let time = 0;
     let A = 0,
       B = 0;
@@ -111,12 +129,12 @@ export default function RotatingObject({ walletAddress = "" }) {
       canvas.height = window.innerHeight;
 
       // Adjust the screen dimensions based on the viewport
-      SCREEN_WIDTH = Math.ceil(window.innerWidth / 15);
-      SCREEN_HEIGHT = Math.ceil(window.innerHeight / 15);
+      const SCREEN_WIDTH = Math.ceil(window.innerWidth / 15);
+      const SCREEN_HEIGHT = Math.ceil(window.innerHeight / 15);
 
       // Reinitialize arrays with new dimensions
-      output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
-      zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
+      const output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
+      const zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
     };
 
     // Initial setup
@@ -131,17 +149,17 @@ export default function RotatingObject({ walletAddress = "" }) {
       "#4a4a8e",
       "#4661ae",
       "#3f84d0",
-      "#ff7b00", // Brighter orange
-      "#ff9e40", // Light orange
-      "#ffac41", // Warm gold
-      "#ffcc00", // Bright yellow
-      "#ff9100", // Vivid orange
-      "#ff5252", // Bright red
-      "#ff3d00", // Intense orange
-      "#ff1744", // Vibrant red
+      "#ff7b00",
+      "#ff9e40",
+      "#ffac41",
+      "#ffcc00",
+      "#ff9100",
+      "#ff5252",
+      "#ff3d00",
+      "#ff1744",
     ];
 
-    const CHARS = "✧●◆△⬡*.✦★"; // Added more varied characters
+    const CHARS = "✧●◆△⬡*.✦★";
 
     // Modify the OSCILLATION_SPOTS configuration for warmer colors
     const OSCILLATION_SPOTS = Array(5)
@@ -149,13 +167,13 @@ export default function RotatingObject({ walletAddress = "" }) {
       .map(() => ({
         theta: Math.random() * 2 * Math.PI,
         phi: Math.random() * 2 * Math.PI,
-        radius: 0.15 + Math.random() * 0.2, // Smaller radius for more focused effect
-        frequency: 0.8 + Math.random() * 2.5, // Faster oscillations
-        amplitude: 0.4 + Math.random() * 0.6, // Stronger amplitude
+        radius: 0.15 + Math.random() * 0.2,
+        frequency: 0.8 + Math.random() * 2.5,
+        amplitude: 0.4 + Math.random() * 0.6,
         lifetime: 0,
-        maxLifetime: 80 + Math.random() * 160, // Shorter lifetime for more dynamic changes
-        color: 20 + Math.random() * 40, // Hue range between orange-red (20) and yellow-orange (60)
-        intensity: 0.9 + Math.random() * 0.3, // Increased intensity
+        maxLifetime: 80 + Math.random() * 160,
+        color: 20 + Math.random() * 40,
+        intensity: 0.9 + Math.random() * 0.3,
       }));
 
     // Add this function before renderFrame
@@ -163,7 +181,6 @@ export default function RotatingObject({ walletAddress = "" }) {
       OSCILLATION_SPOTS.forEach((spot) => {
         spot.lifetime += 1;
         if (spot.lifetime > spot.maxLifetime) {
-          // Relocate the oscillation spot
           spot.theta = Math.random() * 2 * Math.PI;
           spot.phi = Math.random() * 2 * Math.PI;
           spot.radius = 0.2 + Math.random() * 0.3;
@@ -181,21 +198,21 @@ export default function RotatingObject({ walletAddress = "" }) {
       .map(() => ({
         theta: Math.random() * 2 * Math.PI,
         phase: 0,
-        speed: 0.008 + Math.random() * 0.008, // Slightly slower for more visible streams
-        width: 0.15 + Math.random() * 0.2, // Thinner streams
-        intensity: 0.8 + Math.random() * 0.4, // Increased intensity
-        maxRadius: 1.8 + Math.random() * 1.2, // Shorter reach for more frequent interactions
+        speed: 0.008 + Math.random() * 0.008,
+        width: 0.15 + Math.random() * 0.2,
+        intensity: 0.8 + Math.random() * 0.4,
+        maxRadius: 1.8 + Math.random() * 1.2,
         active: true,
-        color: 15 + Math.random() * 45, // Hue range focused on orange spectrum
-        trailLength: 0.3 + Math.random() * 0.2, // New: controls the length of the energy trail
-        pulseFreq: 1 + Math.random() * 2, // New: individual pulse frequency
+        color: 15 + Math.random() * 45,
+        trailLength: 0.3 + Math.random() * 0.2,
+        pulseFreq: 1 + Math.random() * 2,
       }));
 
     // Add this new function to detect edge proximity
     const calculateEdgeProximity = (x, y, radius) => {
       const baseRadius = (R1 + R2) / 2;
       const distanceFromBase = Math.abs(radius - baseRadius);
-      return Math.exp(-Math.pow(distanceFromBase / 0.1, 2)); // Sharp falloff for edge detection
+      return Math.exp(-Math.pow(distanceFromBase / 0.1, 2));
     };
 
     // Modify the calculateEnergyStreamEffect function
@@ -204,10 +221,9 @@ export default function RotatingObject({ walletAddress = "" }) {
         intensity: 0,
         colorShift: 0,
         distortion: 0,
-        edgeGlow: 0, // New: specific edge glow effect
+        edgeGlow: 0,
       };
 
-      // Add edge proximity calculation
       const edgeProximity = calculateEdgeProximity(theta, radius);
       effect.edgeGlow = edgeProximity * 0.5;
 
@@ -217,15 +233,12 @@ export default function RotatingObject({ walletAddress = "" }) {
         let angleDiff = Math.abs(theta - stream.theta);
         angleDiff = Math.min(angleDiff, 2 * Math.PI - angleDiff);
 
-        // Calculate stream position with trail effect
         const streamRadius =
           stream.phase <= 1 ? stream.maxRadius * stream.phase : stream.maxRadius * (2 - stream.phase);
 
-        // Add trail effect
         const trailStart = Math.max(0, streamRadius - stream.trailLength);
         const trailEnd = streamRadius;
 
-        // Check if point is within the trail
         if (radius >= trailStart && radius <= trailEnd) {
           const trailPosition = (radius - trailStart) / (trailEnd - trailStart);
           const trailEffect = Math.sin(trailPosition * Math.PI);
@@ -236,7 +249,6 @@ export default function RotatingObject({ walletAddress = "" }) {
           effect.intensity += streamEffect;
           effect.colorShift += streamEffect * Math.sin((stream.color * Math.PI) / 180);
 
-          // Add pulsing effect on the edge
           if (edgeProximity > 0.5) {
             const pulseWave = Math.sin(time * stream.pulseFreq + theta * 2);
             effect.distortion += streamEffect * pulseWave * edgeProximity * 0.3;
@@ -253,15 +265,15 @@ export default function RotatingObject({ walletAddress = "" }) {
       .map(() => ({
         theta: Math.random() * 2 * Math.PI,
         phi: Math.random() * 2 * Math.PI,
-        radius: 0.1 + Math.random() * 0.15, // Small concentrated areas
+        radius: 0.1 + Math.random() * 0.15,
         intensity: 0.8 + Math.random() * 0.2,
         pulseSpeed: 0.5 + Math.random() * 1.5,
         warmColor: [
-          "#FF4500", // Orange Red
-          "#FF6B35", // Burning Orange
-          "#FF8C42", // Deep Orange
-          "#FFB347", // Light Orange
-          "#FF7F50", // Coral
+          "#FF4500",
+          "#FF6B35",
+          "#FF8C42",
+          "#FFB347",
+          "#FF7F50",
         ][Math.floor(Math.random() * 5)],
         lifetime: 0,
         maxLifetime: 150 + Math.random() * 100,
@@ -272,7 +284,6 @@ export default function RotatingObject({ walletAddress = "" }) {
       HEAT_SPOTS.forEach((spot) => {
         spot.lifetime += 1;
         if (spot.lifetime > spot.maxLifetime) {
-          // Relocate the heat spot
           spot.theta = Math.random() * 2 * Math.PI;
           spot.phi = Math.random() * 2 * Math.PI;
           spot.radius = 0.1 + Math.random() * 0.15;
@@ -294,7 +305,7 @@ export default function RotatingObject({ walletAddress = "" }) {
       intensity: 0,
       pulseFrequency: 0,
       lastTrigger: 0,
-      cooldownPeriod: 8000, // Increased from 2000 to 8 seconds
+      cooldownPeriod: 8000,
       shrinkFactor: 0.9,
     };
 
@@ -305,12 +316,12 @@ export default function RotatingObject({ walletAddress = "" }) {
       if (
         !CONCENTRATION_STATE.active &&
         currentTime - CONCENTRATION_STATE.lastTrigger > CONCENTRATION_STATE.cooldownPeriod &&
-        Math.random() < 0.005 // Decreased from 0.05 to 0.005 (0.5% chance per frame)
+        Math.random() < 0.005
       ) {
         CONCENTRATION_STATE.active = true;
         CONCENTRATION_STATE.progress = 0;
         CONCENTRATION_STATE.duration = 0;
-        CONCENTRATION_STATE.maxDuration = 240; // Fixed duration for smoother timing
+        CONCENTRATION_STATE.maxDuration = 240;
         CONCENTRATION_STATE.centerTheta = Math.random() * 2 * Math.PI;
         CONCENTRATION_STATE.centerPhi = Math.random() * 2 * Math.PI;
         CONCENTRATION_STATE.intensity = 1.2 + Math.random() * 0.3;
@@ -322,21 +333,17 @@ export default function RotatingObject({ walletAddress = "" }) {
       if (CONCENTRATION_STATE.active) {
         CONCENTRATION_STATE.duration++;
 
-        // Smoother transition using phases
         const totalDuration = CONCENTRATION_STATE.maxDuration;
-        const shrinkDuration = totalDuration * 0.3; // 30% of total time
-        const holdDuration = totalDuration * 0.4; // 40% of total time
-        const growDuration = totalDuration * 0.3; // 30% of total time
+        const shrinkDuration = totalDuration * 0.3;
+        const holdDuration = totalDuration * 0.4;
+        const growDuration = totalDuration * 0.3;
 
         if (CONCENTRATION_STATE.duration < shrinkDuration) {
-          // Shrinking phase
           const t = CONCENTRATION_STATE.duration / shrinkDuration;
           CONCENTRATION_STATE.progress = easeInQuart(t);
         } else if (CONCENTRATION_STATE.duration < shrinkDuration + holdDuration) {
-          // Hold phase
           CONCENTRATION_STATE.progress = 1;
         } else if (CONCENTRATION_STATE.duration < totalDuration) {
-          // Growing phase
           const t = (CONCENTRATION_STATE.duration - (shrinkDuration + holdDuration)) / growDuration;
           CONCENTRATION_STATE.progress = 1 - easeOutQuart(t);
         } else {
@@ -361,12 +368,11 @@ export default function RotatingObject({ walletAddress = "" }) {
       );
 
       const distance = Math.sqrt(distanceTheta * distanceTheta + distancePhi * distancePhi);
-      // Much smaller maxRadius during concentration
-      const maxRadius = 0.3 - CONCENTRATION_STATE.progress * 0.2; // Reduced from 0.8 to 0.3
+      const maxRadius = 0.3 - CONCENTRATION_STATE.progress * 0.2;
 
       if (distance < maxRadius) {
-        const falloff = Math.pow(1 - distance / maxRadius, 3); // Sharper falloff (changed from 2 to 3)
-        const pulse = Math.sin(time * CONCENTRATION_STATE.pulseFrequency) * 0.7 + 0.3; // Stronger pulse
+        const falloff = Math.pow(1 - distance / maxRadius, 3);
+        const pulse = Math.sin(time * CONCENTRATION_STATE.pulseFrequency) * 0.7 + 0.3;
         return falloff * CONCENTRATION_STATE.intensity * CONCENTRATION_STATE.progress * pulse;
       }
 
@@ -386,11 +392,11 @@ export default function RotatingObject({ walletAddress = "" }) {
       lastTrigger: 0,
       splitIntensity: 0,
       energyBridgeIntensity: 0,
-      maxSplitDistance: 1.8, // Reduced split distance
+      maxSplitDistance: 1.8,
       splitWidth: Math.PI / 2,
       leftRotation: 0,
       rightRotation: 0,
-      scaleFactorDuringSpilt: 0.85 // Scale down during split to ensure visibility
+      scaleFactorDuringSpilt: 0.85,
     };
 
     // Add split state update function before renderFrame
@@ -415,27 +421,23 @@ export default function RotatingObject({ walletAddress = "" }) {
       }
 
       if (SPLIT_STATE.active) {
-        // Splitting phase with controlled separation
         if (SPLIT_STATE.progress < SPLIT_STATE.splitDuration) {
           SPLIT_STATE.progress++;
           const splitPhase = SPLIT_STATE.progress / SPLIT_STATE.splitDuration;
           
-          // Smoother acceleration and controlled maximum distance
           const easedPhase = splitPhase < 0.4 
-            ? easeInOutQuart(splitPhase / 0.4) // Smooth acceleration
+            ? easeInOutQuart(splitPhase / 0.4) 
             : splitPhase > 0.6 
-              ? 1.0 // Hold maximum separation
-              : 1.0; // Maintain separation
+              ? 1.0 
+              : 1.0;
           
           SPLIT_STATE.splitDistance = easedPhase * SPLIT_STATE.maxSplitDistance;
           SPLIT_STATE.splitIntensity = Math.min(1.0, splitPhase * 1.5);
           SPLIT_STATE.energyBridgeIntensity = Math.sin(splitPhase * Math.PI * 2);
           
-          // Reduced rotation angles
           SPLIT_STATE.leftRotation = splitPhase * Math.PI * 0.12;
           SPLIT_STATE.rightRotation = -splitPhase * Math.PI * 0.12;
         }
-        // Fusion phase
         else if (SPLIT_STATE.progress < SPLIT_STATE.splitDuration + SPLIT_STATE.fusionDuration) {
           SPLIT_STATE.fusionProgress = (SPLIT_STATE.progress - SPLIT_STATE.splitDuration) / SPLIT_STATE.fusionDuration;
           const fusionEase = easeInOutQuart(SPLIT_STATE.fusionProgress);
@@ -443,7 +445,6 @@ export default function RotatingObject({ walletAddress = "" }) {
           SPLIT_STATE.splitIntensity = 1 - SPLIT_STATE.fusionProgress;
           SPLIT_STATE.energyBridgeIntensity = Math.sin(SPLIT_STATE.fusionProgress * Math.PI * 3);
           
-          // Smooth rotation return
           SPLIT_STATE.leftRotation = (1 - fusionEase) * Math.PI * 0.12;
           SPLIT_STATE.rightRotation = -(1 - fusionEase) * Math.PI * 0.12;
           SPLIT_STATE.progress++;
@@ -460,19 +461,15 @@ export default function RotatingObject({ walletAddress = "" }) {
       const angleFromSplit = Math.abs(normalizeAngle(theta - SPLIT_STATE.splitAngle));
       const isLeftSide = normalizeAngle(theta - SPLIT_STATE.splitAngle) < 0;
       
-      // Binary split with no transition area
       const splitFactor = angleFromSplit < SPLIT_STATE.splitWidth ? 1.0 : 0.0;
       
-      // Controlled rotation
       const rotation = isLeftSide ? SPLIT_STATE.leftRotation : SPLIT_STATE.rightRotation;
       
-      // Enhanced energy bridge effect
       const bridgeEffect = SPLIT_STATE.energyBridgeIntensity * 
         Math.exp(-Math.pow(angleFromSplit / (Math.PI / 6), 2)) * 
-        Math.sin(phi * 10 + time * 6) * 
+        Math.sin(phi * 10 + time * 4) * 
         Math.sin(theta * 12 + time * 5);
 
-      // Calculate scale factor during split
       const scaleFactor = SPLIT_STATE.active 
         ? SPLIT_STATE.scaleFactorDuringSpilt + (1 - SPLIT_STATE.scaleFactorDuringSpilt) * (1 - SPLIT_STATE.splitIntensity)
         : 1.0;
@@ -492,32 +489,31 @@ export default function RotatingObject({ walletAddress = "" }) {
       return angle;
     }
 
-    function renderFrame() {
-      output.fill(" ");
-      zbuffer.fill(0);
+    const renderFrame = () => {
+      const SCREEN_WIDTH = Math.ceil(window.innerWidth / 15);
+      const SCREEN_HEIGHT = Math.ceil(window.innerHeight / 15);
+      const K1 = (Math.min(SCREEN_WIDTH, SCREEN_HEIGHT) * K2 * 3) / (8 * (R1 + R2));
+      const output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
+      const zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
 
       const cosA = Math.cos(A),
         sinA = Math.sin(A);
       const cosB = Math.cos(B),
         sinB = Math.sin(B);
 
-      // Enhanced fluid motion
       const waveSpeed = 1.2;
       time += 0.02;
       breathePhase += 0.015 * uniqueParams.pulseFrequency;
 
-      // Complex organic pulsing with multiple harmonics
       const breathe = Math.sin(breathePhase) * 0.3 * uniqueParams.pulseIntensity;
-      const pulse = Math.sin(time * 1.5) * 0.3 + Math.sin(time * 0.7) * 0.2 + Math.sin(time * 0.3) * 0.1; // Added slower wave
+      const pulse = Math.sin(time * 1.5) * 0.3 + Math.sin(time * 0.7) * 0.2 + Math.sin(time * 0.3) * 0.1;
 
-      const secondaryPulse = Math.cos(time * 0.7) * 0.2 + Math.cos(time * 1.2) * 0.15 + Math.cos(time * 0.4) * 0.1; // Added slower wave
+      const secondaryPulse = Math.cos(time * 0.7) * 0.2 + Math.cos(time * 1.2) * 0.15 + Math.cos(time * 0.4) * 0.1;
 
-      // Handle color bursts
-      const timeBetweenBursts = 2000; // More frequent bursts (2 seconds)
-      const burstChance = 0.6; // Increased from 0.5
+      const timeBetweenBursts = 2000;
+      const burstChance = 0.6;
       const currentTime = Date.now();
 
-      // Check if we should start a new burst
       if (burstProgress === -1 && currentTime - lastBurstTime > timeBetweenBursts) {
         if (Math.random() < burstChance) {
           burstProgress = 0;
@@ -525,24 +521,37 @@ export default function RotatingObject({ walletAddress = "" }) {
         }
       }
 
-      // Update burst progress if active
       if (burstProgress >= 0) {
         burstProgress += 0.02;
         if (burstProgress > 1.2) {
-          // Shorter travel distance
           burstProgress = -1;
         }
       }
 
-      // Update oscillation spots
       updateOscillationSpots();
 
-      // Add this function before renderFrame
       updateHeatSpots();
 
       updateConcentrationState(time);
 
       updateSplitState(time);
+
+      // Update dynamic colors based on time
+      if (uniqueParams) {
+        const dynamicHue1 = (uniqueParams.baseHue + time * 30) % 360;
+        const dynamicHue2 = ((uniqueParams.baseHue + 180 + time * 30) % 360);
+        
+        // Add dynamic accent colors
+        COLORS.push(
+          `hsl(${dynamicHue1}, 100%, 60%)`,
+          `hsl(${dynamicHue2}, 100%, 55%)`
+        );
+        
+        // Remove the dynamic colors from the previous frame
+        if (COLORS.length > 11) {
+          COLORS.splice(-2);
+        }
+      }
 
       for (let theta = 0; theta < 2 * Math.PI; theta += 0.06) {
         const cosTheta = Math.cos(theta);
@@ -552,12 +561,10 @@ export default function RotatingObject({ walletAddress = "" }) {
           const cosPhi = Math.cos(phi);
           const sinPhi = Math.sin(phi);
 
-          // Calculate radius for the current position
           const radius = Math.sqrt(
             Math.pow(cosTheta * cosPhi, 2) + Math.pow(sinTheta * cosPhi, 2) + Math.pow(sinPhi, 2)
           );
 
-          // Calculate influence from nearby oscillation spots
           const sizeMultiplier =
             1 +
             OSCILLATION_SPOTS.reduce((acc, spot) => {
@@ -575,11 +582,10 @@ export default function RotatingObject({ walletAddress = "" }) {
               const distance = Math.sqrt(distanceTheta * distanceTheta + distancePhi * distancePhi);
 
               if (distance < spot.radius) {
-                const falloff = Math.pow(1 - distance / spot.radius, 2); // Sharper falloff
+                const falloff = Math.pow(1 - distance / spot.radius, 2);
                 const oscillation = Math.sin(time * spot.frequency) * spot.amplitude;
                 const lifetimeFactor = Math.pow(1 - spot.lifetime / spot.maxLifetime, 1.5);
 
-                // Add pulsing intensity
                 const pulseIntensity = 1 + Math.sin(time * 2 + distance * 8) * 0.3;
 
                 return acc + oscillation * falloff * lifetimeFactor * pulseIntensity * spot.intensity;
@@ -587,38 +593,34 @@ export default function RotatingObject({ walletAddress = "" }) {
               return acc;
             }, 0);
 
-          // Modify the morphFactor calculation to include concentration effect
           const concentrationEffect = getConcentrationEffect(theta, phi, radius);
           const morphFactor =
             (Math.sin(time * waveSpeed * dynamicSpeed.base + theta * 3) * 0.4 +
               Math.cos(time * 0.7 * dynamicSpeed.pulse + phi * 2) * 0.3 +
               Math.sin(time * 0.5 * dynamicSpeed.twist + theta * 2) * 0.25) *
-              (1 - concentrationEffect) + // Reduce normal morphing during concentration
-            concentrationEffect * Math.sin(time * 4 + theta * 8) * 0.8; // Add intense pulsing during concentration
+              (1 - concentrationEffect) +
+            concentrationEffect * Math.sin(time * 4 + theta * 8) * 0.8;
 
           const electricPulse =
             Math.sin(time * 2.5 * dynamicSpeed.base + phi * 4) * 0.25 +
             Math.cos(time * 1.8 * dynamicSpeed.pulse + theta * 3) * 0.2 +
             Math.sin(time * 1.2 * dynamicSpeed.twist + phi * 2) * 0.15;
 
-          // Enhanced organic movement
           const spiralEffect =
             Math.sin(theta * 5 + time * 2) * 0.15 +
             Math.cos(phi * 4 + time * 1.5) * 0.1 +
-            Math.sin(theta * 3 + time * 0.7) * 0.08; // Added subtle spiral
+            Math.sin(theta * 3 + time * 0.7) * 0.08;
 
           const vortexEffect =
             Math.cos(phi * 3 + time) * 0.2 +
             Math.sin(theta * 4 + time * 1.2) * 0.15 +
-            Math.cos(phi * 2 + time * 0.6) * 0.1; // Added gentle vortex
+            Math.cos(phi * 2 + time * 0.6) * 0.1;
 
-          // Enhanced twisting with breathing
           const twistEffect =
             Math.sin(theta * 2 + phi * 2 + time * 1.5) * 0.2 +
             Math.cos(theta * 3 + phi * 3 + time * 0.8) * 0.15 +
-            breathe * Math.sin(theta + phi) * 0.2; // Added breathing influence
+            breathe * Math.sin(theta + phi) * 0.2;
 
-          // Modify the dynamicR1 and dynamicR2 calculations
           const concentrationShrink = CONCENTRATION_STATE.active
             ? 0.1 + (1 - easeInOutQuart(CONCENTRATION_STATE.progress) * CONCENTRATION_STATE.shrinkFactor) * 0.9
             : 1;
@@ -626,65 +628,56 @@ export default function RotatingObject({ walletAddress = "" }) {
           const dynamicR2 =
             R2 * (1 + electricPulse + secondaryPulse + vortexEffect + breathe * 0.5) * concentrationShrink;
 
-          // More fluid shape deformation
           const shapeDeform = uniqueParams.shapeVariation * Math.sin(theta * uniqueParams.patternComplexity + time);
 
           const circleX = (dynamicR2 + dynamicR1 * cosTheta * (1 + 0.3 * Math.sin(3 * phi + time))) * (1 + shapeDeform);
 
           const circleY = dynamicR1 * sinTheta * (1 + 0.2 * Math.cos(2 * theta + time)) * (1 + shapeDeform);
 
-          // Enhanced electric field effect with more complexity
           const electricField =
             Math.sin(time * 3 + theta * 5) * Math.cos(phi * 3) * 0.2 +
             Math.cos(time * 2 + phi * 4) * Math.sin(theta * 3) * 0.15 +
             Math.sin(time * 1.5 + theta * 2 + phi * 2) * 0.1;
 
-          // Enhanced 3D coordinates with electric field distortion
           const x = circleX * (cosB * cosPhi + sinA * sinB * sinPhi) - circleY * cosA * sinB + electricField;
           const y = circleX * (sinB * cosPhi - sinA * cosB * sinPhi) + circleY * cosA * cosB + electricField;
           const z = K2 + cosA * circleX * sinPhi + circleY * sinA;
 
           const splitEffect = calculateSplitEffect(theta, phi, radius);
           
-          // Apply scaling first
           const scaledX = x * splitEffect.scale;
           const scaledY = y * splitEffect.scale;
           
-          // Apply rotation to the scaled coordinates
           const rotatedX = scaledX * Math.cos(splitEffect.rotation) - scaledY * Math.sin(splitEffect.rotation);
           const rotatedY = scaledX * Math.sin(splitEffect.rotation) + scaledY * Math.cos(splitEffect.rotation);
           
-          // Apply controlled split offset
           const xSplit = rotatedX + Math.cos(SPLIT_STATE.splitAngle) * splitEffect.offset * 1.5;
           const ySplit = rotatedY + Math.sin(SPLIT_STATE.splitAngle) * splitEffect.offset * 1.5;
           
-          // Enhanced z-coordinate with controlled movement
           const zSplit = z * splitEffect.scale + (splitEffect.intensity * Math.sin(phi * 5 + time * 4) * 0.4);
 
           const ooz = 1 / zSplit;
           const xp = Math.floor(SCREEN_WIDTH / 2 + K1 * ooz * xSplit);
           const yp = Math.floor(SCREEN_HEIGHT / 2 - K1 * ooz * ySplit);
 
-          // Enhanced luminance with more dynamic range
           const L =
             (cosPhi * cosTheta * sinB -
               cosA * cosTheta * sinPhi -
               sinA * sinTheta +
               cosB * (cosA * sinTheta - cosTheta * sinA * sinPhi)) *
             (1 + Math.abs(electricField) + Math.abs(pulse) + Math.abs(twistEffect)) +
-            splitEffect.intensity * 1.2; // Increased split effect on luminance
+            splitEffect.intensity * 1.2;
 
           if (L > 0 && xp >= 0 && xp < SCREEN_WIDTH && yp >= 0 && yp < SCREEN_HEIGHT) {
             const pos = xp + yp * SCREEN_WIDTH;
             if (ooz > zbuffer[pos]) {
               zbuffer[pos] = ooz;
-              // Enhanced character selection with more varied patterns
               const sparkChance = Math.random();
               let char;
               if (sparkChance > 0.99) {
-                char = CHARS[0]; // Lightning bolt
+                char = CHARS[0];
               } else if (sparkChance > 0.95) {
-                char = CHARS[CHARS.length - 1]; // Star
+                char = CHARS[CHARS.length - 1];
               } else {
                 char = CHARS[Math.floor((L * 8 + time) % (CHARS.length - 2)) + 1];
               }
@@ -694,7 +687,6 @@ export default function RotatingObject({ walletAddress = "" }) {
         }
       }
 
-      // Enhanced rendering with stronger glow
       context.fillStyle = "#000810";
       context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -704,7 +696,6 @@ export default function RotatingObject({ walletAddress = "" }) {
       const startX = (canvas.width - SCREEN_WIDTH * charSize) / 2;
       const startY = (canvas.height - SCREEN_HEIGHT * charSize) / 2;
 
-      // Enhance glow during split with more intensity
       if (SPLIT_STATE.active) {
         const splitGlowIntensity = SPLIT_STATE.splitIntensity * 3;
         context.shadowBlur = uniqueParams.glowRadius * (1 + splitGlowIntensity);
@@ -719,13 +710,11 @@ export default function RotatingObject({ walletAddress = "" }) {
             const luminanceIndex = CHARS.indexOf(char);
             let colorIndex = Math.floor((luminanceIndex / CHARS.length) * COLORS.length);
 
-            // Calculate position and effects
             const relX = x - SCREEN_WIDTH / 2;
             const relY = y - SCREEN_HEIGHT / 2;
             const radius = Math.sqrt(relX * relX + relY * relY) / SCREEN_WIDTH;
             const theta = Math.atan2(relY, relX);
 
-            // Check if point is within any heat spot
             const heatSpotEffect = HEAT_SPOTS.reduce((acc, spot) => {
               const distanceTheta = Math.min(
                 Math.abs(theta - spot.theta),
@@ -744,14 +733,12 @@ export default function RotatingObject({ walletAddress = "" }) {
             }, 0);
 
             if (heatSpotEffect > 0.1) {
-              // Apply warm color with intensity
               const baseColor = HEAT_SPOTS[0].warmColor;
               const intensity = Math.min(1, heatSpotEffect * 1.5);
               context.shadowBlur = 15 + intensity * 25;
               context.shadowColor = baseColor;
               context.fillStyle = baseColor;
             } else {
-              // Use original color scheme
               context.fillStyle = COLORS[colorIndex];
             }
 
@@ -760,7 +747,6 @@ export default function RotatingObject({ walletAddress = "" }) {
         }
       }
 
-      // Reset shadow properties for next frame
       context.shadowBlur = 20;
       context.shadowColor = `hsl(${(time * 50) % 360}, 100%, 50%)`;
 
@@ -777,7 +763,6 @@ export default function RotatingObject({ walletAddress = "" }) {
     };
   }, [walletAddress]);
 
-  // Add color interpolation helper function
   function interpolateColors(color1, color2, factor) {
     const r1 = parseInt(color1.substring(1, 3), 16);
     const g1 = parseInt(color1.substring(3, 5), 16);
