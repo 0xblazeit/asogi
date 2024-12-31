@@ -10,7 +10,7 @@ export default function RotatingObject({ walletAddress = "" }) {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const context = canvas.getContext("2d");
+    const context = canvas.getContext("2d", { alpha: false }); // Optimize for non-transparent canvas
 
     // Generate unique parameters from wallet address
     const generateUniqueParams = (address) => {
@@ -61,6 +61,18 @@ export default function RotatingObject({ walletAddress = "" }) {
     const R1 = 0.6;
     const R2 = 1.2;
     const K2 = 5;
+
+    // Performance optimization constants
+    const PERFORMANCE_CONFIG = {
+      frameInterval: 1000 / 30, // Cap at 30 FPS
+      thetaStep: 0.08, // Reduced resolution (was 0.06)
+      phiStep: 0.08, // Reduced resolution
+      screenDivisor: 18, // Increased from 15 for fewer pixels
+      skipFrames: 2, // Only process every nth frame for heavy calculations
+      currentFrame: 0,
+      lastFrameTime: 0,
+      useAdaptiveResolution: true,
+    };
 
     // Color state management
     const colorState = {
@@ -162,8 +174,8 @@ export default function RotatingObject({ walletAddress = "" }) {
       canvas.height = window.innerHeight;
 
       // Adjust the screen dimensions based on the viewport
-      const SCREEN_WIDTH = Math.ceil(window.innerWidth / 15);
-      const SCREEN_HEIGHT = Math.ceil(window.innerHeight / 15);
+      const SCREEN_WIDTH = Math.ceil(window.innerWidth / PERFORMANCE_CONFIG.screenDivisor);
+      const SCREEN_HEIGHT = Math.ceil(window.innerHeight / PERFORMANCE_CONFIG.screenDivisor);
 
       // Reinitialize arrays with new dimensions
       const output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
@@ -522,81 +534,91 @@ export default function RotatingObject({ walletAddress = "" }) {
       return angle;
     }
 
+    // Optimization: Pre-calculate expensive values
+    const preCalculated = {
+      sinValues: new Float32Array(Math.ceil(2 * Math.PI / PERFORMANCE_CONFIG.thetaStep)),
+      cosValues: new Float32Array(Math.ceil(2 * Math.PI / PERFORMANCE_CONFIG.thetaStep))
+    };
+
+    for (let i = 0; i < preCalculated.sinValues.length; i++) {
+      const angle = i * PERFORMANCE_CONFIG.thetaStep;
+      preCalculated.sinValues[i] = Math.sin(angle);
+      preCalculated.cosValues[i] = Math.cos(angle);
+    }
+
+    // Optimization: Create permanent buffers
+    const permanentOutput = new Array(Math.ceil(window.innerWidth / PERFORMANCE_CONFIG.screenDivisor) * 
+                                     Math.ceil(window.innerHeight / PERFORMANCE_CONFIG.screenDivisor)).fill(" ");
+    const permanentZBuffer = new Float32Array(permanentOutput.length);
+
     const renderFrame = () => {
-      const SCREEN_WIDTH = Math.ceil(window.innerWidth / 15);
-      const SCREEN_HEIGHT = Math.ceil(window.innerHeight / 15);
-      const K1 = (Math.min(SCREEN_WIDTH, SCREEN_HEIGHT) * K2 * 3) / (8 * (R1 + R2));
-      const output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
-      const zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
-
-      // Update color and animation timing
       const now = Date.now();
-      const timeSinceLastTransition = now - colorState.lastTransition;
-      const timeSinceLastBurst = now - lastBurstTime;
+      const elapsed = now - PERFORMANCE_CONFIG.lastFrameTime;
 
-      // Check if we should switch color modes
-      if (!colorState.isMonochrome && timeSinceLastTransition > colorState.normalDuration) {
-        colorState.isMonochrome = true;
-        colorState.lastTransition = now;
-        colorState.monochromeHue = Math.random() * 360; // Random hue for monochrome phase
-      } else if (colorState.isMonochrome && timeSinceLastTransition > colorState.monochromeDuration) {
-        colorState.isMonochrome = false;
-        colorState.lastTransition = now;
+      // Skip frame if we're running too fast
+      if (elapsed < PERFORMANCE_CONFIG.frameInterval) {
+        requestAnimationFrame(renderFrame);
+        return;
       }
 
-      // Handle color bursts
-      if (burstProgress === -1 && timeSinceLastBurst > burstConfig.timeBetweenBursts) {
-        if (Math.random() < burstConfig.burstChance) {
-          burstProgress = 0;
-          lastBurstTime = now;
+      PERFORMANCE_CONFIG.lastFrameTime = now - (elapsed % PERFORMANCE_CONFIG.frameInterval);
+      PERFORMANCE_CONFIG.currentFrame++;
+
+      const SCREEN_WIDTH = Math.ceil(window.innerWidth / PERFORMANCE_CONFIG.screenDivisor);
+      const SCREEN_HEIGHT = Math.ceil(window.innerHeight / PERFORMANCE_CONFIG.screenDivisor);
+      const K1 = (Math.min(SCREEN_WIDTH, SCREEN_HEIGHT) * K2 * 3) / (8 * (R1 + R2));
+
+      // Clear buffers efficiently
+      permanentOutput.fill(" ");
+      permanentZBuffer.fill(0);
+
+      // Only update color states and other expensive calculations every few frames
+      if (PERFORMANCE_CONFIG.currentFrame % PERFORMANCE_CONFIG.skipFrames === 0) {
+        const timeSinceLastTransition = now - colorState.lastTransition;
+        const timeSinceLastBurst = now - lastBurstTime;
+
+        // Color mode transitions
+        if (!colorState.isMonochrome && timeSinceLastTransition > colorState.normalDuration) {
+          colorState.isMonochrome = true;
+          colorState.lastTransition = now;
+          colorState.monochromeHue = Math.random() * 360;
+        } else if (colorState.isMonochrome && timeSinceLastTransition > colorState.monochromeDuration) {
+          colorState.isMonochrome = false;
+          colorState.lastTransition = now;
         }
-      }
 
-      if (burstProgress >= 0) {
-        burstProgress += burstConfig.progressIncrement;
-        if (burstProgress > burstConfig.maxProgress) {
-          burstProgress = -1;
+        // Update color palette
+        if (uniqueParams) {
+          const monochromeIntensity = colorState.isMonochrome 
+            ? Math.min(1, ((now - colorState.lastTransition) / colorState.transitionDuration) * 1.5)
+            : Math.max(0, 1 - ((now - colorState.lastTransition) / colorState.transitionDuration) * 1.5);
+
+          const currentPalette = generateColorPalette(
+            uniqueParams.baseHue,
+            uniqueParams.saturationOffset,
+            colorState.isMonochrome ? colorState.monochromeHue : null,
+            monochromeIntensity
+          );
+
+          COLORS.length = 0;
+          COLORS.push(
+            ...currentPalette.base,
+            ...currentPalette.analogous,
+            ...currentPalette.complementary
+          );
+
+          const dynamicHue1 = colorState.isMonochrome 
+            ? colorState.monochromeHue 
+            : (uniqueParams.baseHue + time * 30) % 360;
+          const dynamicHue2 = colorState.isMonochrome
+            ? colorState.monochromeHue
+            : ((uniqueParams.baseHue + 180 + time * 30) % 360);
+
+          COLORS.push(
+            `hsl(${dynamicHue1}, ${colorState.isMonochrome ? 70 : 100}%, ${60 + (colorState.isMonochrome ? monochromeIntensity * 15 : 0)}%)`,
+            `hsl(${dynamicHue2}, ${colorState.isMonochrome ? 70 : 100}%, ${55 + (colorState.isMonochrome ? monochromeIntensity * 20 : 0)}%)`
+          );
         }
-      }
-
-      // Calculate transition progress
-      const transitionTime = Math.min(timeSinceLastTransition, colorState.transitionDuration);
-      colorState.transitionProgress = transitionTime / colorState.transitionDuration;
-
-      // Generate current color palette
-      let currentPalette;
-      if (uniqueParams) {
-        const monochromeIntensity = colorState.isMonochrome 
-          ? Math.min(1, colorState.transitionProgress * 1.5)
-          : Math.max(0, 1 - colorState.transitionProgress * 1.5);
-
-        currentPalette = generateColorPalette(
-          uniqueParams.baseHue,
-          uniqueParams.saturationOffset,
-          colorState.isMonochrome ? colorState.monochromeHue : null,
-          monochromeIntensity
-        );
-
-        // Update COLORS array
-        COLORS.length = 0; // Clear existing colors
-        COLORS.push(
-          ...currentPalette.base,
-          ...currentPalette.analogous,
-          ...currentPalette.complementary
-        );
-
-        // Add dynamic accent colors
-        const dynamicHue1 = colorState.isMonochrome 
-          ? colorState.monochromeHue 
-          : (uniqueParams.baseHue + time * 30) % 360;
-        const dynamicHue2 = colorState.isMonochrome
-          ? colorState.monochromeHue
-          : ((uniqueParams.baseHue + 180 + time * 30) % 360);
-
-        COLORS.push(
-          `hsl(${dynamicHue1}, ${colorState.isMonochrome ? 70 : 100}%, ${60 + (colorState.isMonochrome ? monochromeIntensity * 15 : 0)}%)`,
-          `hsl(${dynamicHue2}, ${colorState.isMonochrome ? 70 : 100}%, ${55 + (colorState.isMonochrome ? monochromeIntensity * 20 : 0)}%)`
-        );
       }
 
       const cosA = Math.cos(A),
@@ -621,11 +643,16 @@ export default function RotatingObject({ walletAddress = "" }) {
 
       updateSplitState(time);
 
-      for (let theta = 0; theta < 2 * Math.PI; theta += 0.06) {
-        const cosTheta = Math.cos(theta);
-        const sinTheta = Math.sin(theta);
+      const thetaMax = 2 * Math.PI;
+      const phiMax = Math.PI;
+      const thetaStep = PERFORMANCE_CONFIG.thetaStep;
+      const phiStep = PERFORMANCE_CONFIG.phiStep;
 
-        for (let phi = 0; phi < 2 * Math.PI; phi += 0.015) {
+      for (let thetaIndex = 0; thetaIndex < preCalculated.sinValues.length; thetaIndex++) {
+        const cosTheta = preCalculated.cosValues[thetaIndex];
+        const sinTheta = preCalculated.sinValues[thetaIndex];
+
+        for (let phi = 0; phi < phiMax; phi += phiStep) {
           const cosPhi = Math.cos(phi);
           const sinPhi = Math.sin(phi);
 
@@ -637,9 +664,9 @@ export default function RotatingObject({ walletAddress = "" }) {
             1 +
             OSCILLATION_SPOTS.reduce((acc, spot) => {
               const distanceTheta = Math.min(
-                Math.abs(theta - spot.theta),
-                Math.abs(theta - spot.theta + 2 * Math.PI),
-                Math.abs(theta - spot.theta - 2 * Math.PI)
+                Math.abs(thetaIndex * PERFORMANCE_CONFIG.thetaStep - spot.theta),
+                Math.abs(thetaIndex * PERFORMANCE_CONFIG.thetaStep - spot.theta + 2 * Math.PI),
+                Math.abs(thetaIndex * PERFORMANCE_CONFIG.thetaStep - spot.theta - 2 * Math.PI)
               );
               const distancePhi = Math.min(
                 Math.abs(phi - spot.phi),
@@ -661,33 +688,33 @@ export default function RotatingObject({ walletAddress = "" }) {
               return acc;
             }, 0);
 
-          const concentrationEffect = getConcentrationEffect(theta, phi, radius);
+          const concentrationEffect = getConcentrationEffect(thetaIndex * PERFORMANCE_CONFIG.thetaStep, phi, radius);
           const morphFactor =
-            (Math.sin(time * waveSpeed * dynamicSpeed.base + theta * 3) * 0.4 +
+            (Math.sin(time * waveSpeed * dynamicSpeed.base + thetaIndex * PERFORMANCE_CONFIG.thetaStep * 3) * 0.4 +
               Math.cos(time * 0.7 * dynamicSpeed.pulse + phi * 2) * 0.3 +
-              Math.sin(time * 0.5 * dynamicSpeed.twist + theta * 2) * 0.25) *
+              Math.sin(time * 0.5 * dynamicSpeed.twist + thetaIndex * PERFORMANCE_CONFIG.thetaStep * 2) * 0.25) *
               (1 - concentrationEffect) +
-            concentrationEffect * Math.sin(time * 4 + theta * 8) * 0.8;
+            concentrationEffect * Math.sin(time * 4 + thetaIndex * PERFORMANCE_CONFIG.thetaStep * 8) * 0.8;
 
           const electricPulse =
             Math.sin(time * 2.5 * dynamicSpeed.base + phi * 4) * 0.25 +
-            Math.cos(time * 1.8 * dynamicSpeed.pulse + theta * 3) * 0.2 +
+            Math.cos(time * 1.8 * dynamicSpeed.pulse + thetaIndex * PERFORMANCE_CONFIG.thetaStep * 3) * 0.2 +
             Math.sin(time * 1.2 * dynamicSpeed.twist + phi * 2) * 0.15;
 
           const spiralEffect =
-            Math.sin(theta * 5 + time * 2) * 0.15 +
+            Math.sin(thetaIndex * PERFORMANCE_CONFIG.thetaStep * 5 + time * 2) * 0.15 +
             Math.cos(phi * 4 + time * 1.5) * 0.1 +
-            Math.sin(theta * 3 + time * 0.7) * 0.08;
+            Math.sin(thetaIndex * PERFORMANCE_CONFIG.thetaStep * 3 + time * 0.7) * 0.08;
 
           const vortexEffect =
             Math.cos(phi * 3 + time) * 0.2 +
-            Math.sin(theta * 4 + time * 1.2) * 0.15 +
+            Math.sin(thetaIndex * PERFORMANCE_CONFIG.thetaStep * 4 + time * 1.2) * 0.15 +
             Math.cos(phi * 2 + time * 0.6) * 0.1;
 
           const twistEffect =
-            Math.sin(theta * 2 + phi * 2 + time * 1.5) * 0.2 +
-            Math.cos(theta * 3 + phi * 3 + time * 0.8) * 0.15 +
-            breathe * Math.sin(theta + phi) * 0.2;
+            Math.sin(thetaIndex * PERFORMANCE_CONFIG.thetaStep * 2 + phi * 2 + time * 1.5) * 0.2 +
+            Math.cos(thetaIndex * PERFORMANCE_CONFIG.thetaStep * 3 + phi * 3 + time * 0.8) * 0.15 +
+            breathe * Math.sin(thetaIndex * PERFORMANCE_CONFIG.thetaStep + phi) * 0.2;
 
           const concentrationShrink = CONCENTRATION_STATE.active
             ? 0.1 + (1 - easeInOutQuart(CONCENTRATION_STATE.progress) * CONCENTRATION_STATE.shrinkFactor) * 0.9
@@ -696,22 +723,22 @@ export default function RotatingObject({ walletAddress = "" }) {
           const dynamicR2 =
             R2 * (1 + electricPulse + secondaryPulse + vortexEffect + breathe * 0.5) * concentrationShrink;
 
-          const shapeDeform = uniqueParams.shapeVariation * Math.sin(theta * uniqueParams.patternComplexity + time);
+          const shapeDeform = uniqueParams.shapeVariation * Math.sin(thetaIndex * PERFORMANCE_CONFIG.thetaStep * uniqueParams.patternComplexity + time);
 
           const circleX = (dynamicR2 + dynamicR1 * cosTheta * (1 + 0.3 * Math.sin(3 * phi + time))) * (1 + shapeDeform);
 
-          const circleY = dynamicR1 * sinTheta * (1 + 0.2 * Math.cos(2 * theta + time)) * (1 + shapeDeform);
+          const circleY = dynamicR1 * sinTheta * (1 + 0.2 * Math.cos(2 * thetaIndex * PERFORMANCE_CONFIG.thetaStep + time)) * (1 + shapeDeform);
 
           const electricField =
-            Math.sin(time * 3 + theta * 5) * Math.cos(phi * 3) * 0.2 +
-            Math.cos(time * 2 + phi * 4) * Math.sin(theta * 3) * 0.15 +
-            Math.sin(time * 1.5 + theta * 2 + phi * 2) * 0.1;
+            Math.sin(time * 3 + thetaIndex * PERFORMANCE_CONFIG.thetaStep * 5) * Math.cos(phi * 3) * 0.2 +
+            Math.cos(time * 2 + phi * 4) * Math.sin(thetaIndex * PERFORMANCE_CONFIG.thetaStep * 3) * 0.15 +
+            Math.sin(time * 1.5 + thetaIndex * PERFORMANCE_CONFIG.thetaStep * 2 + phi * 2) * 0.1;
 
           const x = circleX * (cosB * cosPhi + sinA * sinB * sinPhi) - circleY * cosA * sinB + electricField;
           const y = circleX * (sinB * cosPhi - sinA * cosB * sinPhi) + circleY * cosA * cosB + electricField;
           const z = K2 + cosA * circleX * sinPhi + circleY * sinA;
 
-          const splitEffect = calculateSplitEffect(theta, phi, radius);
+          const splitEffect = calculateSplitEffect(thetaIndex * PERFORMANCE_CONFIG.thetaStep, phi, radius);
           
           const scaledX = x * splitEffect.scale;
           const scaledY = y * splitEffect.scale;
@@ -738,8 +765,8 @@ export default function RotatingObject({ walletAddress = "" }) {
 
           if (L > 0 && xp >= 0 && xp < SCREEN_WIDTH && yp >= 0 && yp < SCREEN_HEIGHT) {
             const pos = xp + yp * SCREEN_WIDTH;
-            if (ooz > zbuffer[pos]) {
-              zbuffer[pos] = ooz;
+            if (ooz > permanentZBuffer[pos]) {
+              permanentZBuffer[pos] = ooz;
               const sparkChance = Math.random();
               let char;
               if (sparkChance > 0.99) {
@@ -749,7 +776,7 @@ export default function RotatingObject({ walletAddress = "" }) {
               } else {
                 char = CHARS[Math.floor((L * 8 + time) % (CHARS.length - 2)) + 1];
               }
-              output[pos] = char;
+              permanentOutput[pos] = char;
             }
           }
         }
@@ -771,7 +798,7 @@ export default function RotatingObject({ walletAddress = "" }) {
       }
 
       for (let y = 0; y < SCREEN_HEIGHT; y++) {
-        const line = output.slice(y * SCREEN_WIDTH, (y + 1) * SCREEN_WIDTH);
+        const line = permanentOutput.slice(y * SCREEN_WIDTH, (y + 1) * SCREEN_WIDTH);
         for (let x = 0; x < SCREEN_WIDTH; x++) {
           const char = line[x];
           if (char !== " ") {
