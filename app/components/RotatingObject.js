@@ -62,35 +62,68 @@ export default function RotatingObject({ walletAddress = "" }) {
     const R2 = 1.2;
     const K2 = 5;
 
+    // Color state management
+    const colorState = {
+      isMonochrome: false,
+      monochromeHue: 0,
+      transitionProgress: 0,
+      lastTransition: 0,
+      transitionDuration: 2000, // Duration of transition in milliseconds
+      monochromeDuration: 5000, // How long to stay monochrome
+      normalDuration: 8000, // How long to stay in normal color mode
+    };
+
+    // Burst animation constants
+    const burstConfig = {
+      timeBetweenBursts: 2000,
+      burstChance: 0.6,
+      maxProgress: 1.2,
+      progressIncrement: 0.02
+    };
+
     // Base color palette generation
-    const generateColorPalette = (baseHue, satOffset) => {
-      // Generate complementary and analogous colors
-      const complementaryHue = (baseHue + 180) % 360;
-      const analogousHue1 = (baseHue + 30) % 360;
-      const analogousHue2 = (baseHue - 30 + 360) % 360;
+    const generateColorPalette = (baseHue, satOffset, forcedHue = null, monochromeIntensity = 0) => {
+      const hue = forcedHue !== null ? forcedHue : baseHue;
+      const complementaryHue = (hue + 180) % 360;
+      const analogousHue1 = (hue + 30) % 360;
+      const analogousHue2 = (hue - 30 + 360) % 360;
       const splitComplementaryHue1 = (complementaryHue + 30) % 360;
       const splitComplementaryHue2 = (complementaryHue - 30 + 360) % 360;
 
+      // For monochrome mode, we adjust saturation and brightness
+      const getSaturation = (baseSat) => {
+        const normalSat = baseSat + satOffset;
+        return monochromeIntensity > 0 
+          ? normalSat * (1 - monochromeIntensity) + (70 * monochromeIntensity)
+          : normalSat;
+      };
+
+      const getHue = (targetHue) => {
+        return monochromeIntensity > 0 
+          ? hue 
+          : targetHue;
+      };
+
       return {
         base: [
-          `hsl(${baseHue}, ${70 + satOffset}%, 15%)`,
-          `hsl(${baseHue}, ${80 + satOffset}%, 25%)`,
-          `hsl(${baseHue}, ${90 + satOffset}%, 35%)`
+          `hsl(${getHue(hue)}, ${getSaturation(70)}%, ${15 + monochromeIntensity * 10}%)`,
+          `hsl(${getHue(hue)}, ${getSaturation(80)}%, ${25 + monochromeIntensity * 15}%)`,
+          `hsl(${getHue(hue)}, ${getSaturation(90)}%, ${35 + monochromeIntensity * 20}%)`
         ],
         analogous: [
-          `hsl(${analogousHue1}, ${85 + satOffset}%, 45%)`,
-          `hsl(${analogousHue2}, ${85 + satOffset}%, 40%)`
+          `hsl(${getHue(analogousHue1)}, ${getSaturation(85)}%, ${45 + monochromeIntensity * 15}%)`,
+          `hsl(${getHue(analogousHue2)}, ${getSaturation(85)}%, ${40 + monochromeIntensity * 20}%)`
         ],
         complementary: [
-          `hsl(${complementaryHue}, 100%, 50%)`,
-          `hsl(${splitComplementaryHue1}, 95%, 55%)`,
-          `hsl(${splitComplementaryHue2}, 95%, 45%)`
+          `hsl(${getHue(complementaryHue)}, ${getSaturation(100)}%, ${50 + monochromeIntensity * 15}%)`,
+          `hsl(${getHue(splitComplementaryHue1)}, ${getSaturation(95)}%, ${55 + monochromeIntensity * 10}%)`,
+          `hsl(${getHue(splitComplementaryHue2)}, ${getSaturation(95)}%, ${45 + monochromeIntensity * 20}%)`
         ]
       };
     };
 
     // Initialize base colors
-    const COLORS = uniqueParams
+    let COLORS = uniqueParams
       ? generateColorPalette(uniqueParams.baseHue, uniqueParams.saturationOffset).base.concat(
           generateColorPalette(uniqueParams.baseHue, uniqueParams.saturationOffset).analogous,
           generateColorPalette(uniqueParams.baseHue, uniqueParams.saturationOffset).complementary
@@ -496,6 +529,76 @@ export default function RotatingObject({ walletAddress = "" }) {
       const output = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(" ");
       const zbuffer = new Array(SCREEN_WIDTH * SCREEN_HEIGHT).fill(0);
 
+      // Update color and animation timing
+      const now = Date.now();
+      const timeSinceLastTransition = now - colorState.lastTransition;
+      const timeSinceLastBurst = now - lastBurstTime;
+
+      // Check if we should switch color modes
+      if (!colorState.isMonochrome && timeSinceLastTransition > colorState.normalDuration) {
+        colorState.isMonochrome = true;
+        colorState.lastTransition = now;
+        colorState.monochromeHue = Math.random() * 360; // Random hue for monochrome phase
+      } else if (colorState.isMonochrome && timeSinceLastTransition > colorState.monochromeDuration) {
+        colorState.isMonochrome = false;
+        colorState.lastTransition = now;
+      }
+
+      // Handle color bursts
+      if (burstProgress === -1 && timeSinceLastBurst > burstConfig.timeBetweenBursts) {
+        if (Math.random() < burstConfig.burstChance) {
+          burstProgress = 0;
+          lastBurstTime = now;
+        }
+      }
+
+      if (burstProgress >= 0) {
+        burstProgress += burstConfig.progressIncrement;
+        if (burstProgress > burstConfig.maxProgress) {
+          burstProgress = -1;
+        }
+      }
+
+      // Calculate transition progress
+      const transitionTime = Math.min(timeSinceLastTransition, colorState.transitionDuration);
+      colorState.transitionProgress = transitionTime / colorState.transitionDuration;
+
+      // Generate current color palette
+      let currentPalette;
+      if (uniqueParams) {
+        const monochromeIntensity = colorState.isMonochrome 
+          ? Math.min(1, colorState.transitionProgress * 1.5)
+          : Math.max(0, 1 - colorState.transitionProgress * 1.5);
+
+        currentPalette = generateColorPalette(
+          uniqueParams.baseHue,
+          uniqueParams.saturationOffset,
+          colorState.isMonochrome ? colorState.monochromeHue : null,
+          monochromeIntensity
+        );
+
+        // Update COLORS array
+        COLORS.length = 0; // Clear existing colors
+        COLORS.push(
+          ...currentPalette.base,
+          ...currentPalette.analogous,
+          ...currentPalette.complementary
+        );
+
+        // Add dynamic accent colors
+        const dynamicHue1 = colorState.isMonochrome 
+          ? colorState.monochromeHue 
+          : (uniqueParams.baseHue + time * 30) % 360;
+        const dynamicHue2 = colorState.isMonochrome
+          ? colorState.monochromeHue
+          : ((uniqueParams.baseHue + 180 + time * 30) % 360);
+
+        COLORS.push(
+          `hsl(${dynamicHue1}, ${colorState.isMonochrome ? 70 : 100}%, ${60 + (colorState.isMonochrome ? monochromeIntensity * 15 : 0)}%)`,
+          `hsl(${dynamicHue2}, ${colorState.isMonochrome ? 70 : 100}%, ${55 + (colorState.isMonochrome ? monochromeIntensity * 20 : 0)}%)`
+        );
+      }
+
       const cosA = Math.cos(A),
         sinA = Math.sin(A);
       const cosB = Math.cos(B),
@@ -510,24 +613,6 @@ export default function RotatingObject({ walletAddress = "" }) {
 
       const secondaryPulse = Math.cos(time * 0.7) * 0.2 + Math.cos(time * 1.2) * 0.15 + Math.cos(time * 0.4) * 0.1;
 
-      const timeBetweenBursts = 2000;
-      const burstChance = 0.6;
-      const currentTime = Date.now();
-
-      if (burstProgress === -1 && currentTime - lastBurstTime > timeBetweenBursts) {
-        if (Math.random() < burstChance) {
-          burstProgress = 0;
-          lastBurstTime = currentTime;
-        }
-      }
-
-      if (burstProgress >= 0) {
-        burstProgress += 0.02;
-        if (burstProgress > 1.2) {
-          burstProgress = -1;
-        }
-      }
-
       updateOscillationSpots();
 
       updateHeatSpots();
@@ -535,23 +620,6 @@ export default function RotatingObject({ walletAddress = "" }) {
       updateConcentrationState(time);
 
       updateSplitState(time);
-
-      // Update dynamic colors based on time
-      if (uniqueParams) {
-        const dynamicHue1 = (uniqueParams.baseHue + time * 30) % 360;
-        const dynamicHue2 = ((uniqueParams.baseHue + 180 + time * 30) % 360);
-        
-        // Add dynamic accent colors
-        COLORS.push(
-          `hsl(${dynamicHue1}, 100%, 60%)`,
-          `hsl(${dynamicHue2}, 100%, 55%)`
-        );
-        
-        // Remove the dynamic colors from the previous frame
-        if (COLORS.length > 11) {
-          COLORS.splice(-2);
-        }
-      }
 
       for (let theta = 0; theta < 2 * Math.PI; theta += 0.06) {
         const cosTheta = Math.cos(theta);
