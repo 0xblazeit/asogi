@@ -25,13 +25,15 @@ export default function FooterContent() {
   const { data: blockData, isLoading: isBlockLoading } = useQuery({
     queryKey: ["baseBlock"],
     queryFn: fetchBaseBlock,
+    refetchOnWindowFocus: true,
     refetchInterval: 12000, // Refetch every 12 seconds
   });
 
   const { data: gasData, isLoading: isGasLoading } = useQuery({
     queryKey: ["baseGas"],
     queryFn: fetchGasPrice,
-    refetchInterval: 12000, // Refetch every 12 seconds
+    refetchOnWindowFocus: true,
+    refetchInterval: 600000, // Refetch every 10 minutes
   });
 
   const blockNumber = blockData?.data?.number;
@@ -83,9 +85,7 @@ export default function FooterContent() {
             <div className="h-4 w-px bg-zinc-800" />
             <div className="flex items-center text-zinc-400">
               <GasPump className="w-4 h-4 mr-1" weight="light" />
-              <span className="text-[10px] md:text-xs">
-                {isGasLoading ? "..." : `${gasData?.data?.gwei} gwei`}
-              </span>
+              <span className="text-[10px] md:text-xs">{isGasLoading ? "..." : `${gasData?.data?.gwei} gwei`}</span>
             </div>
             <div className="h-4 w-px bg-zinc-800" />
             {/* Block Number */}
