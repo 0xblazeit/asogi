@@ -30,7 +30,7 @@ async function fetchGasPrice() {
     return {
       success: true,
       data: {
-        gwei: Math.round(gweiPrice * 100) / 100, // Round to 2 decimal places
+        gwei: Number(gweiPrice.toFixed(4)), // Round to 4 decimal places
       },
     };
   } catch (error) {

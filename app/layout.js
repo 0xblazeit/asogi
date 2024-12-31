@@ -1,14 +1,8 @@
-import { VT323 } from "next/font/google";
 import "./globals.css";
 import localFont from "next/font/local";
 import NavBar from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { Providers } from "@/providers";
-
-const vt323 = VT323({
-  weight: "400",
-  variable: "--font-vt323",
-});
 
 const DepatureMono = localFont({
   src: "./fonts/DepartureMono-Regular.woff",

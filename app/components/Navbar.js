@@ -88,7 +88,7 @@ export default function Navbar() {
     <>
       <nav className="fixed top-0 z-50 w-full">
         <div className="absolute inset-0 bg-gradient-to-b from-black to-transparent pointer-events-none via-black/50"></div>
-        <div className="container flex relative justify-between items-center px-4 py-4 mx-auto font-vt323">
+        <div className="container flex relative justify-between items-center px-4 py-4 mx-auto">
           <div className="flex items-center space-x-2">
             <Link href="/" className="flex items-center space-x-2">
               <div className="relative size-12 md:size-20">
