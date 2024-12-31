@@ -34,16 +34,11 @@ export function WelcomeText() {
       animate="show"
       className="flex flex-col items-center justify-center space-y-4 text-center px-4 py-12 md:py-24"
     >
-      <motion.h1 variants={item} className="text-4xl md:text-6xl font-bold bg-clip-text text-white">
+      <motion.h1 variants={item} className="text-3xl md:text-4xl font-bold bg-clip-text text-white">
         Discover the unknown
       </motion.h1>
-
-      <motion.p variants={item} className="text-xl md:text-2xl text-muted-foreground mt-4">
-        Asobi whispers in motion and light
-      </motion.p>
-
       <motion.p variants={item} className="text-lg md:text-xl text-muted-foreground max-w-2xl">
-        A boundless canvas, forged by echos of the blockchain
+        A dynamic canvas, forged by the ethers of the blockchain
       </motion.p>
     </motion.div>
   );
