@@ -373,6 +373,125 @@ export default function RotatingObject({ walletAddress = "" }) {
       return 0;
     };
 
+    // Add split state configuration after CONCENTRATION_STATE
+    const SPLIT_STATE = {
+      active: false,
+      progress: 0,
+      splitDistance: 0,
+      splitAngle: 0,
+      fusionProgress: 0,
+      splitDuration: 160,
+      fusionDuration: 120,
+      cooldownPeriod: 4000,
+      lastTrigger: 0,
+      splitIntensity: 0,
+      energyBridgeIntensity: 0,
+      maxSplitDistance: 1.8, // Reduced split distance
+      splitWidth: Math.PI / 2,
+      leftRotation: 0,
+      rightRotation: 0,
+      scaleFactorDuringSpilt: 0.85 // Scale down during split to ensure visibility
+    };
+
+    // Add split state update function before renderFrame
+    const updateSplitState = (time) => {
+      const currentTime = Date.now();
+
+      if (
+        !SPLIT_STATE.active &&
+        currentTime - SPLIT_STATE.lastTrigger > SPLIT_STATE.cooldownPeriod &&
+        Math.random() < 0.01
+      ) {
+        SPLIT_STATE.active = true;
+        SPLIT_STATE.progress = 0;
+        SPLIT_STATE.splitDistance = 0;
+        SPLIT_STATE.splitAngle = Math.random() * Math.PI * 2;
+        SPLIT_STATE.fusionProgress = 0;
+        SPLIT_STATE.lastTrigger = currentTime;
+        SPLIT_STATE.splitIntensity = 0;
+        SPLIT_STATE.energyBridgeIntensity = 0;
+        SPLIT_STATE.leftRotation = 0;
+        SPLIT_STATE.rightRotation = 0;
+      }
+
+      if (SPLIT_STATE.active) {
+        // Splitting phase with controlled separation
+        if (SPLIT_STATE.progress < SPLIT_STATE.splitDuration) {
+          SPLIT_STATE.progress++;
+          const splitPhase = SPLIT_STATE.progress / SPLIT_STATE.splitDuration;
+          
+          // Smoother acceleration and controlled maximum distance
+          const easedPhase = splitPhase < 0.4 
+            ? easeInOutQuart(splitPhase / 0.4) // Smooth acceleration
+            : splitPhase > 0.6 
+              ? 1.0 // Hold maximum separation
+              : 1.0; // Maintain separation
+          
+          SPLIT_STATE.splitDistance = easedPhase * SPLIT_STATE.maxSplitDistance;
+          SPLIT_STATE.splitIntensity = Math.min(1.0, splitPhase * 1.5);
+          SPLIT_STATE.energyBridgeIntensity = Math.sin(splitPhase * Math.PI * 2);
+          
+          // Reduced rotation angles
+          SPLIT_STATE.leftRotation = splitPhase * Math.PI * 0.12;
+          SPLIT_STATE.rightRotation = -splitPhase * Math.PI * 0.12;
+        }
+        // Fusion phase
+        else if (SPLIT_STATE.progress < SPLIT_STATE.splitDuration + SPLIT_STATE.fusionDuration) {
+          SPLIT_STATE.fusionProgress = (SPLIT_STATE.progress - SPLIT_STATE.splitDuration) / SPLIT_STATE.fusionDuration;
+          const fusionEase = easeInOutQuart(SPLIT_STATE.fusionProgress);
+          SPLIT_STATE.splitDistance = (1 - fusionEase) * SPLIT_STATE.maxSplitDistance;
+          SPLIT_STATE.splitIntensity = 1 - SPLIT_STATE.fusionProgress;
+          SPLIT_STATE.energyBridgeIntensity = Math.sin(SPLIT_STATE.fusionProgress * Math.PI * 3);
+          
+          // Smooth rotation return
+          SPLIT_STATE.leftRotation = (1 - fusionEase) * Math.PI * 0.12;
+          SPLIT_STATE.rightRotation = -(1 - fusionEase) * Math.PI * 0.12;
+          SPLIT_STATE.progress++;
+        } else {
+          SPLIT_STATE.active = false;
+        }
+      }
+    };
+
+    // Add split effect calculation function
+    const calculateSplitEffect = (theta, phi, radius) => {
+      if (!SPLIT_STATE.active) return { offset: 0, intensity: 0, rotation: 0, scale: 1.0 };
+
+      const angleFromSplit = Math.abs(normalizeAngle(theta - SPLIT_STATE.splitAngle));
+      const isLeftSide = normalizeAngle(theta - SPLIT_STATE.splitAngle) < 0;
+      
+      // Binary split with no transition area
+      const splitFactor = angleFromSplit < SPLIT_STATE.splitWidth ? 1.0 : 0.0;
+      
+      // Controlled rotation
+      const rotation = isLeftSide ? SPLIT_STATE.leftRotation : SPLIT_STATE.rightRotation;
+      
+      // Enhanced energy bridge effect
+      const bridgeEffect = SPLIT_STATE.energyBridgeIntensity * 
+        Math.exp(-Math.pow(angleFromSplit / (Math.PI / 6), 2)) * 
+        Math.sin(phi * 10 + time * 6) * 
+        Math.sin(theta * 12 + time * 5);
+
+      // Calculate scale factor during split
+      const scaleFactor = SPLIT_STATE.active 
+        ? SPLIT_STATE.scaleFactorDuringSpilt + (1 - SPLIT_STATE.scaleFactorDuringSpilt) * (1 - SPLIT_STATE.splitIntensity)
+        : 1.0;
+
+      return {
+        offset: SPLIT_STATE.splitDistance * splitFactor,
+        intensity: SPLIT_STATE.splitIntensity * splitFactor + bridgeEffect * 2.0,
+        rotation: rotation * splitFactor,
+        scale: scaleFactor
+      };
+    };
+
+    // Add angle normalization helper
+    function normalizeAngle(angle) {
+      while (angle > Math.PI) angle -= 2 * Math.PI;
+      while (angle < -Math.PI) angle += 2 * Math.PI;
+      return angle;
+    }
+
     function renderFrame() {
       output.fill(" ");
       zbuffer.fill(0);
@@ -422,6 +541,8 @@ export default function RotatingObject({ walletAddress = "" }) {
       updateHeatSpots();
 
       updateConcentrationState(time);
+
+      updateSplitState(time);
 
       for (let theta = 0; theta < 2 * Math.PI; theta += 0.06) {
         const cosTheta = Math.cos(theta);
@@ -523,9 +644,26 @@ export default function RotatingObject({ walletAddress = "" }) {
           const y = circleX * (sinB * cosPhi - sinA * cosB * sinPhi) + circleY * cosA * cosB + electricField;
           const z = K2 + cosA * circleX * sinPhi + circleY * sinA;
 
-          const ooz = 1 / z;
-          const xp = Math.floor(SCREEN_WIDTH / 2 + K1 * ooz * x);
-          const yp = Math.floor(SCREEN_HEIGHT / 2 - K1 * ooz * y);
+          const splitEffect = calculateSplitEffect(theta, phi, radius);
+          
+          // Apply scaling first
+          const scaledX = x * splitEffect.scale;
+          const scaledY = y * splitEffect.scale;
+          
+          // Apply rotation to the scaled coordinates
+          const rotatedX = scaledX * Math.cos(splitEffect.rotation) - scaledY * Math.sin(splitEffect.rotation);
+          const rotatedY = scaledX * Math.sin(splitEffect.rotation) + scaledY * Math.cos(splitEffect.rotation);
+          
+          // Apply controlled split offset
+          const xSplit = rotatedX + Math.cos(SPLIT_STATE.splitAngle) * splitEffect.offset * 1.5;
+          const ySplit = rotatedY + Math.sin(SPLIT_STATE.splitAngle) * splitEffect.offset * 1.5;
+          
+          // Enhanced z-coordinate with controlled movement
+          const zSplit = z * splitEffect.scale + (splitEffect.intensity * Math.sin(phi * 5 + time * 4) * 0.4);
+
+          const ooz = 1 / zSplit;
+          const xp = Math.floor(SCREEN_WIDTH / 2 + K1 * ooz * xSplit);
+          const yp = Math.floor(SCREEN_HEIGHT / 2 - K1 * ooz * ySplit);
 
           // Enhanced luminance with more dynamic range
           const L =
@@ -533,7 +671,8 @@ export default function RotatingObject({ walletAddress = "" }) {
               cosA * cosTheta * sinPhi -
               sinA * sinTheta +
               cosB * (cosA * sinTheta - cosTheta * sinA * sinPhi)) *
-            (1 + Math.abs(electricField) + Math.abs(pulse) + Math.abs(twistEffect));
+            (1 + Math.abs(electricField) + Math.abs(pulse) + Math.abs(twistEffect)) +
+            splitEffect.intensity * 1.2; // Increased split effect on luminance
 
           if (L > 0 && xp >= 0 && xp < SCREEN_WIDTH && yp >= 0 && yp < SCREEN_HEIGHT) {
             const pos = xp + yp * SCREEN_WIDTH;
@@ -565,9 +704,12 @@ export default function RotatingObject({ walletAddress = "" }) {
       const startX = (canvas.width - SCREEN_WIDTH * charSize) / 2;
       const startY = (canvas.height - SCREEN_HEIGHT * charSize) / 2;
 
-      // Enhanced glow effect
-      context.shadowBlur = uniqueParams.glowRadius + Math.sin(time * 3) * 5 * uniqueParams.glowIntensity;
-      context.shadowColor = `hsl(${(time * 70) % 360}, 100%, ${50 + Math.sin(time * 2) * 20}%)`;
+      // Enhance glow during split with more intensity
+      if (SPLIT_STATE.active) {
+        const splitGlowIntensity = SPLIT_STATE.splitIntensity * 3;
+        context.shadowBlur = uniqueParams.glowRadius * (1 + splitGlowIntensity);
+        context.shadowColor = `hsl(${(time * 90) % 360}, 100%, ${75 + splitGlowIntensity * 20}%)`;
+      }
 
       for (let y = 0; y < SCREEN_HEIGHT; y++) {
         const line = output.slice(y * SCREEN_WIDTH, (y + 1) * SCREEN_WIDTH);
