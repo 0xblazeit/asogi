@@ -2,6 +2,7 @@ import { VT323 } from "next/font/google";
 import "./globals.css";
 import localFont from "next/font/local";
 import NavBar from "./components/Navbar";
+import { Footer } from "./components/Footer";
 import { Providers } from "@/providers";
 
 const vt323 = VT323({
@@ -27,6 +28,7 @@ export default function RootLayout({ children }) {
         <Providers>
           <NavBar />
           {children}
+          <Footer />
         </Providers>
       </body>
     </html>
