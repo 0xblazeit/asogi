@@ -43,10 +43,12 @@ export default function FooterContent() {
       <div className="container mx-auto px-2 md:px-4 h-14">
         <div className="flex items-center justify-between h-full">
           {/* Version */}
-          <div className="text-[10px] md:text-xs text-zinc-400">Asobi v1.0.0</div>
+          <div className="flex items-center space-x-1 md:space-x-2 text-zinc-400">
+            <span className="text-[10px] md:text-xs">Asobi v1.0.0</span>
+          </div>
 
           {/* Center Section */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 md:space-x-4">
             {/* Social Links */}
             <a
               href="https://twitter.com"
@@ -56,7 +58,7 @@ export default function FooterContent() {
             >
               <XLogo className="w-4 h-4 md:w-5 md:h-5" weight="light" />
             </a>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 md:space-x-4">
               <div className="h-4 w-px bg-zinc-800" />
               <a
                 href="https://github.com"
@@ -84,14 +86,14 @@ export default function FooterContent() {
             </div>
             <div className="h-4 w-px bg-zinc-800" />
             <div className="flex items-center text-zinc-400">
-              <GasPump className="w-4 h-4 mr-1" weight="light" />
-              <span className="text-[10px] md:text-xs">{isGasLoading ? "..." : `${gasData?.data?.gwei} gwei`}</span>
+              <GasPump className="w-4 h-4  md:w-5 md:h-5 md:mr-1" weight="light" />
+              <span className="text-[10px] md:text-xs">{isGasLoading ? "" : `${gasData?.data?.gwei} gwei`}</span>
             </div>
             <div className="h-4 w-px bg-zinc-800" />
             {/* Block Number */}
             <div className="flex items-center space-x-1 text-zinc-400">
-              <Cube className="w-4 h-4" weight="light" />
-              <span className="text-[10px] md:text-xs">{isBlockLoading ? "..." : blockNumber?.toLocaleString()}</span>
+              <Cube className="w-4 h-4 md:w-5 md:h-5" weight="light" />
+              <span className="text-[10px] md:text-xs">{isBlockLoading ? "" : blockNumber?.toLocaleString()}</span>
             </div>
           </div>
         </div>
