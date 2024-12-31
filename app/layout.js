@@ -1,6 +1,9 @@
 import { VT323 } from "next/font/google";
 import "./globals.css";
 import localFont from "next/font/local";
+import NavBar from "./components/Navbar";
+import { Providers } from "@/providers";
+
 const vt323 = VT323({
   weight: "400",
   variable: "--font-vt323",
@@ -20,7 +23,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${DepatureMono.className} antialiased`}>{children}</body>
+      <body className={`${DepatureMono.className} antialiased`}>
+        <Providers>
+          <NavBar />
+          {children}
+        </Providers>
+      </body>
     </html>
   );
 }
