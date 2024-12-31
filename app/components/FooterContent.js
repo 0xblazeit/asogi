@@ -39,36 +39,39 @@ export default function FooterContent() {
   const blockNumber = blockData?.data?.number;
 
   return (
-    <div className="container mx-auto w-full px-2 md:px-4 h-14">
+    <div className="container mx-auto w-full px-2 md:px-4 h-full">
       <div className="flex items-center justify-between h-full">
         {/* Version */}
         <div className="flex items-center space-x-1 md:space-x-2 text-zinc-400">
           <span className="text-[9px] md:text-[12px] md:text-xs">Asobi v.BETA</span>
         </div>
 
-        {/* Ethereum Stats */}
         <div className="flex items-center space-x-2 md:space-x-4">
           <div className="text-[10px] md:text-xs text-zinc-400 flex items-center gap-1">
-            <CurrencyEth className="w-4 h-4 md:w-5 md:h-5" weight="light" />
-            <span>
-              {ethData?.price
-                ? `$${ethData.price.toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}`
-                : "--.--"}
-            </span>
-          </div>
-          <div className="h-4 w-px bg-zinc-800" />
-          <div className="flex items-center text-zinc-400">
-            <GasPump className="w-4 h-4  md:w-5 md:h-5 mr-1" weight="light" />
-            <span className="text-[10px] md:text-xs">{isGasLoading ? "" : `${gasData?.data?.gwei} gwei`}</span>
+            <div className="flex items-center space-x-1 text-zinc-400">
+              <CurrencyEth className="w-4 h-4 md:w-5 md:h-5" weight="light" />
+              <span>
+                {ethData?.price
+                  ? `$${ethData.price.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`
+                  : "--.--"}
+              </span>
+            </div>
           </div>
           <div className="h-4 w-px bg-zinc-800" />
           {/* Block Number */}
           <div className="flex items-center space-x-1 text-zinc-400">
             <Cube className="w-4 h-4 md:w-5 md:h-5" weight="light" />
             <span className="text-[10px] md:text-xs">{isBlockLoading ? "" : blockNumber?.toLocaleString()}</span>
+          </div>
+
+          <div className="h-4 w-px bg-zinc-800" />
+          {/* GWEI */}
+          <div className="flex items-center text-zinc-400">
+            <GasPump className="w-4 h-4  md:w-5 md:h-5 mr-1" weight="light" />
+            <span className="text-[10px] md:text-xs">{isGasLoading ? "" : `${gasData?.data?.gwei} gwei`}</span>
           </div>
         </div>
       </div>
