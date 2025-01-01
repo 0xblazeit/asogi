@@ -38,7 +38,7 @@ export function WelcomeText() {
         Weave the Digital Tapestry
       </motion.h1>
       <motion.p variants={item} className="text-lg md:text-xl text-gray-400 max-w-2xl">
-        A dynamic canvas, forged by the ethers of the blockchain
+        A generative art canvas, living on BASE L2
       </motion.p>
     </motion.div>
   );
