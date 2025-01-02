@@ -38,7 +38,7 @@ export function WelcomeText() {
         Asobi
       </motion.h1>
       <motion.p variants={item} className="text-sm md:text-xl text-gray-300 max-w-lg tracking-normal">
-        A generative ascii art canvas powered by AI
+        A generative ascii art canvas
       </motion.p>
       <motion.div variants={item} className="grid grid-cols-2 gap-3 w-full max-w-lg">
         <div className="space-y-0.5">
