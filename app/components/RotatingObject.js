@@ -245,7 +245,7 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       "✧●◆△⬡*.✦★", // Original celestial set
       "⚝✴✺✵✶✷✸✹✻", // Mystical set
       "✣✤✥✦✧✪✫✬✭", // Extended celestial
-      "⭐⭑⭒⭓⭔✨✯✰⁂", // Stars variation
+      "⭑⭒⭓⭔✯✰⁂", // Stars variation
 
       // Geometric Patterns
       "■□▢▣▤▥▦▧▨", // Geometric set
@@ -259,13 +259,13 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       "○●◐◑◒◓◔◕◌", // Minimal circles
       "⊕⊖⊗⊘⊙⊚⊛⊜⊝", // Circled operators
       "⊹⊺⊻⊼⊽⋄⋆⋇⋈", // Circle variations
-      "⚪⚫⚬⚭⚮⚯⚲⚳⚴", // Astronomical
+      "⚬⚭⚮⚯⚲⚳⚴", // Astronomical
 
       // Nature and Decorative
       "❋✿❀❃✾✤✣✢❉", // Nature/floral set
       "❧❦☙✾❀❁❂❃❇", // Floral variations
       "⚘⚵⚶⚷⚸⚹⚺⚻⚼", // Decorative symbols
-      "❄❅❆❇❈❉❊❋❌", // Winter patterns
+      "❄❅❆❇❈❉❊❋", // Winter patterns
 
       // Box Drawing - Basic
       "┌┐└┘├┤┬┴┼", // Basic box corners
