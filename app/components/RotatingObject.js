@@ -5,8 +5,9 @@ const easeOutQuart = (x) => 1 - Math.pow(1 - x, 4);
 const easeInQuart = (x) => x * x * x * x;
 const easeInOutQuart = (x) => (x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2);
 
-export default function RotatingObject({ walletAddress = "" }) {
-  const canvasRef = useRef(null);
+export default function RotatingObject({ walletAddress = "", canvasRef: externalCanvasRef }) {
+  const internalCanvasRef = useRef(null);
+  const canvasRef = externalCanvasRef || internalCanvasRef;
 
   useEffect(() => {
     const canvas = canvasRef.current;
