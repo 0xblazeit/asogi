@@ -91,7 +91,7 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       timeBetweenBursts: 2000,
       burstChance: 0.6,
       maxProgress: 1.2,
-      progressIncrement: 0.02
+      progressIncrement: 0.02,
     };
 
     // Base color palette generation
@@ -106,32 +106,28 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       // For monochrome mode, we adjust saturation and brightness
       const getSaturation = (baseSat) => {
         const normalSat = baseSat + satOffset;
-        return monochromeIntensity > 0 
-          ? normalSat * (1 - monochromeIntensity) + (70 * monochromeIntensity)
-          : normalSat;
+        return monochromeIntensity > 0 ? normalSat * (1 - monochromeIntensity) + 70 * monochromeIntensity : normalSat;
       };
 
       const getHue = (targetHue) => {
-        return monochromeIntensity > 0 
-          ? hue 
-          : targetHue;
+        return monochromeIntensity > 0 ? hue : targetHue;
       };
 
       return {
         base: [
           `hsl(${getHue(hue)}, ${getSaturation(70)}%, ${15 + monochromeIntensity * 10}%)`,
           `hsl(${getHue(hue)}, ${getSaturation(80)}%, ${25 + monochromeIntensity * 15}%)`,
-          `hsl(${getHue(hue)}, ${getSaturation(90)}%, ${35 + monochromeIntensity * 20}%)`
+          `hsl(${getHue(hue)}, ${getSaturation(90)}%, ${35 + monochromeIntensity * 20}%)`,
         ],
         analogous: [
           `hsl(${getHue(analogousHue1)}, ${getSaturation(85)}%, ${45 + monochromeIntensity * 15}%)`,
-          `hsl(${getHue(analogousHue2)}, ${getSaturation(85)}%, ${40 + monochromeIntensity * 20}%)`
+          `hsl(${getHue(analogousHue2)}, ${getSaturation(85)}%, ${40 + monochromeIntensity * 20}%)`,
         ],
         complementary: [
           `hsl(${getHue(complementaryHue)}, ${getSaturation(100)}%, ${50 + monochromeIntensity * 15}%)`,
           `hsl(${getHue(splitComplementaryHue1)}, ${getSaturation(95)}%, ${55 + monochromeIntensity * 10}%)`,
-          `hsl(${getHue(splitComplementaryHue2)}, ${getSaturation(95)}%, ${45 + monochromeIntensity * 20}%)`
-        ]
+          `hsl(${getHue(splitComplementaryHue2)}, ${getSaturation(95)}%, ${45 + monochromeIntensity * 20}%)`,
+        ],
       };
     };
 
@@ -171,8 +167,8 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
 
     // Optimization: Pre-calculate expensive values
     const preCalculated = {
-      sinValues: new Float32Array(Math.ceil(2 * Math.PI / PERFORMANCE_CONFIG.thetaStep)),
-      cosValues: new Float32Array(Math.ceil(2 * Math.PI / PERFORMANCE_CONFIG.thetaStep))
+      sinValues: new Float32Array(Math.ceil((2 * Math.PI) / PERFORMANCE_CONFIG.thetaStep)),
+      cosValues: new Float32Array(Math.ceil((2 * Math.PI) / PERFORMANCE_CONFIG.thetaStep)),
     };
 
     // Initialize preCalculated values
@@ -185,7 +181,7 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
     // Update the canvas size function
     const updateCanvasSize = () => {
       if (!canvas) return { permanentOutput: [], permanentZBuffer: new Float32Array() }; // Guard clause with return value
-      
+
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
 
@@ -199,7 +195,7 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       const newZBuffer = new Float32Array(newSize);
 
       // Update preCalculated values if needed
-      const newThetaLength = Math.ceil(2 * Math.PI / PERFORMANCE_CONFIG.thetaStep);
+      const newThetaLength = Math.ceil((2 * Math.PI) / PERFORMANCE_CONFIG.thetaStep);
       if (preCalculated.sinValues.length !== newThetaLength) {
         preCalculated.sinValues = new Float32Array(newThetaLength);
         preCalculated.cosValues = new Float32Array(newThetaLength);
@@ -210,15 +206,15 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
         }
       }
 
-      return { 
-        permanentOutput: newOutput, 
-        permanentZBuffer: newZBuffer 
+      return {
+        permanentOutput: newOutput,
+        permanentZBuffer: newZBuffer,
       };
     };
 
     // Initial setup
     let { permanentOutput, permanentZBuffer } = updateCanvasSize();
-    
+
     // Add resize listener
     window.addEventListener("resize", () => {
       const newBuffers = updateCanvasSize();
@@ -353,13 +349,7 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
         radius: 0.1 + Math.random() * 0.15,
         intensity: 0.8 + Math.random() * 0.2,
         pulseSpeed: 0.5 + Math.random() * 1.5,
-        warmColor: [
-          "#FF4500",
-          "#FF6B35",
-          "#FF8C42",
-          "#FFB347",
-          "#FF7F50",
-        ][Math.floor(Math.random() * 5)],
+        warmColor: ["#FF4500", "#FF6B35", "#FF8C42", "#FFB347", "#FF7F50"][Math.floor(Math.random() * 5)],
         lifetime: 0,
         maxLifetime: 150 + Math.random() * 100,
       }));
@@ -509,27 +499,22 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
         if (SPLIT_STATE.progress < SPLIT_STATE.splitDuration) {
           SPLIT_STATE.progress++;
           const splitPhase = SPLIT_STATE.progress / SPLIT_STATE.splitDuration;
-          
-          const easedPhase = splitPhase < 0.4 
-            ? easeInOutQuart(splitPhase / 0.4) 
-            : splitPhase > 0.6 
-              ? 1.0 
-              : 1.0;
-          
+
+          const easedPhase = splitPhase < 0.4 ? easeInOutQuart(splitPhase / 0.4) : splitPhase > 0.6 ? 1.0 : 1.0;
+
           SPLIT_STATE.splitDistance = easedPhase * SPLIT_STATE.maxSplitDistance;
           SPLIT_STATE.splitIntensity = Math.min(1.0, splitPhase * 1.5);
           SPLIT_STATE.energyBridgeIntensity = Math.sin(splitPhase * Math.PI * 2);
-          
+
           SPLIT_STATE.leftRotation = splitPhase * Math.PI * 0.12;
           SPLIT_STATE.rightRotation = -splitPhase * Math.PI * 0.12;
-        }
-        else if (SPLIT_STATE.progress < SPLIT_STATE.splitDuration + SPLIT_STATE.fusionDuration) {
+        } else if (SPLIT_STATE.progress < SPLIT_STATE.splitDuration + SPLIT_STATE.fusionDuration) {
           SPLIT_STATE.fusionProgress = (SPLIT_STATE.progress - SPLIT_STATE.splitDuration) / SPLIT_STATE.fusionDuration;
           const fusionEase = easeInOutQuart(SPLIT_STATE.fusionProgress);
           SPLIT_STATE.splitDistance = (1 - fusionEase) * SPLIT_STATE.maxSplitDistance;
           SPLIT_STATE.splitIntensity = 1 - SPLIT_STATE.fusionProgress;
           SPLIT_STATE.energyBridgeIntensity = Math.sin(SPLIT_STATE.fusionProgress * Math.PI * 3);
-          
+
           SPLIT_STATE.leftRotation = (1 - fusionEase) * Math.PI * 0.12;
           SPLIT_STATE.rightRotation = -(1 - fusionEase) * Math.PI * 0.12;
           SPLIT_STATE.progress++;
@@ -545,25 +530,27 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
 
       const angleFromSplit = Math.abs(normalizeAngle(theta - SPLIT_STATE.splitAngle));
       const isLeftSide = normalizeAngle(theta - SPLIT_STATE.splitAngle) < 0;
-      
+
       const splitFactor = angleFromSplit < SPLIT_STATE.splitWidth ? 1.0 : 0.0;
-      
+
       const rotation = isLeftSide ? SPLIT_STATE.leftRotation : SPLIT_STATE.rightRotation;
-      
-      const bridgeEffect = SPLIT_STATE.energyBridgeIntensity * 
-        Math.exp(-Math.pow(angleFromSplit / (Math.PI / 6), 2)) * 
-        Math.sin(phi * 10 + time * 4) * 
+
+      const bridgeEffect =
+        SPLIT_STATE.energyBridgeIntensity *
+        Math.exp(-Math.pow(angleFromSplit / (Math.PI / 6), 2)) *
+        Math.sin(phi * 10 + time * 4) *
         Math.sin(theta * 12 + time * 5);
 
-      const scaleFactor = SPLIT_STATE.active 
-        ? SPLIT_STATE.scaleFactorDuringSpilt + (1 - SPLIT_STATE.scaleFactorDuringSpilt) * (1 - SPLIT_STATE.splitIntensity)
+      const scaleFactor = SPLIT_STATE.active
+        ? SPLIT_STATE.scaleFactorDuringSpilt +
+          (1 - SPLIT_STATE.scaleFactorDuringSpilt) * (1 - SPLIT_STATE.splitIntensity)
         : 1.0;
 
       return {
         offset: SPLIT_STATE.splitDistance * splitFactor,
         intensity: SPLIT_STATE.splitIntensity * splitFactor + bridgeEffect * 2.0,
         rotation: rotation * splitFactor,
-        scale: scaleFactor
+        scale: scaleFactor,
       };
     };
 
@@ -612,7 +599,7 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
 
         // Update color palette
         if (uniqueParams) {
-          const monochromeIntensity = colorState.isMonochrome 
+          const monochromeIntensity = colorState.isMonochrome
             ? Math.min(1, ((now - colorState.lastTransition) / colorState.transitionDuration) * 1.5)
             : Math.max(0, 1 - ((now - colorState.lastTransition) / colorState.transitionDuration) * 1.5);
 
@@ -624,22 +611,22 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
           );
 
           COLORS.length = 0;
-          COLORS.push(
-            ...currentPalette.base,
-            ...currentPalette.analogous,
-            ...currentPalette.complementary
-          );
+          COLORS.push(...currentPalette.base, ...currentPalette.analogous, ...currentPalette.complementary);
 
-          const dynamicHue1 = colorState.isMonochrome 
-            ? colorState.monochromeHue 
+          const dynamicHue1 = colorState.isMonochrome
+            ? colorState.monochromeHue
             : (uniqueParams.baseHue + time * 30) % 360;
           const dynamicHue2 = colorState.isMonochrome
             ? colorState.monochromeHue
-            : ((uniqueParams.baseHue + 180 + time * 30) % 360);
+            : (uniqueParams.baseHue + 180 + time * 30) % 360;
 
           COLORS.push(
-            `hsl(${dynamicHue1}, ${colorState.isMonochrome ? 70 : 100}%, ${60 + (colorState.isMonochrome ? monochromeIntensity * 15 : 0)}%)`,
-            `hsl(${dynamicHue2}, ${colorState.isMonochrome ? 70 : 100}%, ${55 + (colorState.isMonochrome ? monochromeIntensity * 20 : 0)}%)`
+            `hsl(${dynamicHue1}, ${colorState.isMonochrome ? 70 : 100}%, ${
+              60 + (colorState.isMonochrome ? monochromeIntensity * 15 : 0)
+            }%)`,
+            `hsl(${dynamicHue2}, ${colorState.isMonochrome ? 70 : 100}%, ${
+              55 + (colorState.isMonochrome ? monochromeIntensity * 20 : 0)
+            }%)`
           );
         }
       }
@@ -746,11 +733,17 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
           const dynamicR2 =
             R2 * (1 + electricPulse + secondaryPulse + vortexEffect + breathe * 0.5) * concentrationShrink;
 
-          const shapeDeform = uniqueParams.shapeVariation * Math.sin(thetaIndex * PERFORMANCE_CONFIG.thetaStep * uniqueParams.patternComplexity + time);
+          const shapeDeform =
+            uniqueParams.shapeVariation *
+            Math.sin(thetaIndex * PERFORMANCE_CONFIG.thetaStep * uniqueParams.patternComplexity + time);
 
           const circleX = (dynamicR2 + dynamicR1 * cosTheta * (1 + 0.3 * Math.sin(3 * phi + time))) * (1 + shapeDeform);
 
-          const circleY = dynamicR1 * sinTheta * (1 + 0.2 * Math.cos(2 * thetaIndex * PERFORMANCE_CONFIG.thetaStep + time)) * (1 + shapeDeform);
+          const circleY =
+            dynamicR1 *
+            sinTheta *
+            (1 + 0.2 * Math.cos(2 * thetaIndex * PERFORMANCE_CONFIG.thetaStep + time)) *
+            (1 + shapeDeform);
 
           const electricField =
             Math.sin(time * 3 + thetaIndex * PERFORMANCE_CONFIG.thetaStep * 5) * Math.cos(phi * 3) * 0.2 +
@@ -762,17 +755,17 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
           const z = K2 + cosA * circleX * sinPhi + circleY * sinA;
 
           const splitEffect = calculateSplitEffect(thetaIndex * PERFORMANCE_CONFIG.thetaStep, phi, radius);
-          
+
           const scaledX = x * splitEffect.scale;
           const scaledY = y * splitEffect.scale;
-          
+
           const rotatedX = scaledX * Math.cos(splitEffect.rotation) - scaledY * Math.sin(splitEffect.rotation);
           const rotatedY = scaledX * Math.sin(splitEffect.rotation) + scaledY * Math.cos(splitEffect.rotation);
-          
+
           const xSplit = rotatedX + Math.cos(SPLIT_STATE.splitAngle) * splitEffect.offset * 1.5;
           const ySplit = rotatedY + Math.sin(SPLIT_STATE.splitAngle) * splitEffect.offset * 1.5;
-          
-          const zSplit = z * splitEffect.scale + (splitEffect.intensity * Math.sin(phi * 5 + time * 4) * 0.4);
+
+          const zSplit = z * splitEffect.scale + splitEffect.intensity * Math.sin(phi * 5 + time * 4) * 0.4;
 
           const ooz = 1 / zSplit;
           const xp = Math.floor(SCREEN_WIDTH / 2 + K1 * ooz * xSplit);
@@ -783,7 +776,7 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
               cosA * cosTheta * sinPhi -
               sinA * sinTheta +
               cosB * (cosA * sinTheta - cosTheta * sinA * sinPhi)) *
-            (1 + Math.abs(electricField) + Math.abs(pulse) + Math.abs(twistEffect)) +
+              (1 + Math.abs(electricField) + Math.abs(pulse) + Math.abs(twistEffect)) +
             splitEffect.intensity * 1.2;
 
           if (L > 0 && xp >= 0 && xp < SCREEN_WIDTH && yp >= 0 && yp < SCREEN_HEIGHT) {
@@ -872,14 +865,14 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       B += 0.004 * uniqueParams.speedFactor * uniqueParams.rotationDirection;
 
       requestAnimationFrame(renderFrame);
-    }
+    };
 
     renderFrame();
 
     return () => {
       window.removeEventListener("resize", updateCanvasSize);
     };
-  }, [walletAddress]);
+  }, [canvasRef, walletAddress]);
 
   function interpolateColors(color1, color2, factor) {
     const r1 = parseInt(color1.substring(1, 3), 16);
