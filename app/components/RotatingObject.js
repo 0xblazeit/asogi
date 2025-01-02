@@ -241,45 +241,61 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
     ];
 
     const CHAR_SETS = [
-      // Original sets
+      // Celestial and Mystical
       "✧●◆△⬡*.✦★", // Original celestial set
-      "■□▢▣▤▥▦▧▨", // Geometric set
-      "○●◐◑◒◓◔◕◌", // Minimal circles set
-      "❋✿❀❃✾✤✣✢❉", // Nature/floral set
       "⚝✴✺✵✶✷✸✹✻", // Mystical set
+      "✣✤✥✦✧✪✫✬✭", // Extended celestial
+      "⭐⭑⭒⭓⭔✨✯✰⁂", // Stars variation
 
-      // Box drawing sets
+      // Geometric Patterns
+      "■□▢▣▤▥▦▧▨", // Geometric set
+      "▰▱▲▼◀▶◢◣", // Filled shapes
+      "◰◱◲◳◴◵◶◷", // Partial circles
+      "⬒⬓⬔⬕⬖⬗⬘⬙", // Diamond patterns
+      "◢◣◤◥◸◹◺◿", // Triangular patterns
+      "⯀⯁⯂⯃⯄⯅⯆⯇⯈", // Modern geometric
+
+      // Circles and Dots
+      "○●◐◑◒◓◔◕◌", // Minimal circles
+      "⊕⊖⊗⊘⊙⊚⊛⊜⊝", // Circled operators
+      "⊹⊺⊻⊼⊽⋄⋆⋇⋈", // Circle variations
+      "⚪⚫⚬⚭⚮⚯⚲⚳⚴", // Astronomical
+
+      // Nature and Decorative
+      "❋✿❀❃✾✤✣✢❉", // Nature/floral set
+      "❧❦☙✾❀❁❂❃❇", // Floral variations
+      "⚘⚵⚶⚷⚸⚹⚺⚻⚼", // Decorative symbols
+      "❄❅❆❇❈❉❊❋❌", // Winter patterns
+
+      // Box Drawing - Basic
       "┌┐└┘├┤┬┴┼", // Basic box corners
       "═║╔╗╚╝╠╣╦╩", // Double line box
       "╭╮╯╰│─┆┊┋", // Rounded corners
-      "╱╲╳┼╋╂┿╀╁", // Diagonal patterns
-      "▀▄█▌▐░▒▓■", // Block elements
+      "┏┓┗┛┣┫┳┻╋", // Bold corners
 
-      // Extended geometric sets
-      "◰◱◲◳◴◵◶◷", // Partial circles
-      "◢◣◤◥◸◹◺◿", // Triangular patterns
-      "⬒⬓⬔⬕⬖⬗⬘⬙", // Diamond patterns
+      // Box Drawing - Advanced
+      "╱╲╳┼╋╂┿╀╁", // Diagonal patterns
+      "┠┨┯┷┿╂╅╈", // Mixed weight lines
+      "╄╅╆╇╈╉╊╋", // Complex intersections
+      "┏╍┓┇┗╍┛┇", // Mixed style borders
+
+      // Block Elements
+      "▀▄█▌▐░▒▓■", // Block elements
+      "▁▂▃▄▅▆▇█", // Gradient blocks
+      "░▒▓█▇▆▅▄", // Shading patterns
+      "▛▜▝▞▟▙▚▌▐", // Block combinations
+
+      // Technical and Special
       "⌘⌙⌤⌥⌡⌠⌢⌣", // Technical symbols
       "⏣⏤⏥⏦⌬⌭⌮⌯", // Control symbols
+      "⟡⟢⟣⟤⟥⟦⟧⟨⟩", // Mathematical
+      "⧀⧁⧂⧃⧄⧅⧆⧇⧈", // Technical variations
 
-      // Advanced box patterns
-      "╄╅╆╇╈╉╊╋", // Complex intersections
-      "┠┨┯┷┿╂╅╈", // Mixed weight lines
-      "┏┓┗┛┣┫┳┻", // Bold corners
-      "╌╍┄┅┈┉╎╏", // Dashed patterns
-      "▰▱▲▼◀▶◢◣", // Filled shapes
-
-      // New box-themed sets
+      // Modern Box Patterns
       "╋╪╬╭╮╯╰╱╲", // Ornate intersections
       "┏┳┓┣╋┫┗┻┛", // Heavy box drawings
       "╒╤╕╞╪╡╘╧╛", // Mixed single-double
-      "▁▂▃▄▅▆▇█", // Gradient blocks
-      "░▒▓█▇▆▅▄", // Shading patterns
-      "╭─╮│╰─╯│", // Rounded box elements
-      "┌╌┐╎└╌┘╎", // Dashed box patterns
-      "▛▜▝▞▟▙▚▌▐", // Block combinations
-      "╔╦╗╠╬╣╚╩╝", // Double-line complete
-      "┏╍┓┇┗╍┛┇", // Mixed style borders
+      "⯐⯑⯒⯓⯔⯕⯖⯗⯘", // Contemporary boxes
     ];
 
     const CHARS = CHAR_SETS[Math.floor(Math.random() * CHAR_SETS.length)];
