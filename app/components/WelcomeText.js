@@ -26,12 +26,13 @@ const item = {
   },
 };
 
-export function WelcomeText() {
+export function WelcomeText({ onComplete }) {
   return (
     <motion.div
       variants={container}
       initial="hidden"
       animate="show"
+      onAnimationComplete={() => onComplete?.()}
       className="flex flex-col items-center justify-center space-y-3 md:space-y-6 text-center px-4 py-4 md:py-8"
     >
       <motion.h1 variants={item} className="text-2xl md:text-4xl font-bold text-white tracking-widest">
