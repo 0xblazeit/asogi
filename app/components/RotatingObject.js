@@ -243,9 +243,9 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
     const CHAR_SETS = [
       // Celestial and Mystical
       "✧●◆△⬡*.✦★", // Original celestial set
-      "⚝✴✺✵✶✷✸✹✻", // Mystical set
+      "✴✺✵✶✷✸✹✻✼", // Mystical set
       "✣✤✥✦✧✪✫✬✭", // Extended celestial
-      "⭐⭑⭒⭓⭔✨✯✰⁂", // Stars variation
+      "☆★✬✮✯✰⋆✢✣", // Stars variation
 
       // Geometric Patterns
       "■□▢▣▤▥▦▧▨", // Geometric set
@@ -253,19 +253,19 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       "◰◱◲◳◴◵◶◷", // Partial circles
       "⬒⬓⬔⬕⬖⬗⬘⬙", // Diamond patterns
       "◢◣◤◥◸◹◺◿", // Triangular patterns
-      "⯀⯁⯂⯃⯄⯅⯆⯇⯈", // Modern geometric
+      "◈◇◆◊○●◐◑", // Modern geometric
 
       // Circles and Dots
       "○●◐◑◒◓◔◕◌", // Minimal circles
       "⊕⊖⊗⊘⊙⊚⊛⊜⊝", // Circled operators
       "⊹⊺⊻⊼⊽⋄⋆⋇⋈", // Circle variations
-      "⚪⚫⚬⚭⚮⚯⚲⚳⚴", // Astronomical
+      "◉◎●○◌◍◐◑◒", // Dot patterns
 
       // Nature and Decorative
       "❋✿❀❃✾✤✣✢❉", // Nature/floral set
-      "❧❦☙✾❀❁❂❃❇", // Floral variations
-      "⚘⚵⚶⚷⚸⚹⚺⚻⚼", // Decorative symbols
-      "❄❅❆❇❈❉❊❋❌", // Winter patterns
+      "✾✿❀❁❂❃❇❈❉", // Floral variations
+      "✢✣✤✥✦✧✪✫✬", // Decorative symbols
+      "❆❇❈❉❊❋✢✣✤", // Winter patterns
 
       // Box Drawing - Basic
       "┌┐└┘├┤┬┴┼", // Basic box corners
@@ -295,7 +295,7 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       "╋╪╬╭╮╯╰╱╲", // Ornate intersections
       "┏┳┓┣╋┫┗┻┛", // Heavy box drawings
       "╒╤╕╞╪╡╘╧╛", // Mixed single-double
-      "⯐⯑⯒⯓⯔⯕⯖⯗⯘", // Contemporary boxes
+      "╃╄╅╆╇╈╉╊╋", // Contemporary boxes
     ];
 
     const CHARS = CHAR_SETS[Math.floor(Math.random() * CHAR_SETS.length)];
