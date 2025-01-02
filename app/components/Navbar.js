@@ -131,8 +131,9 @@ export default function Navbar() {
               </DropdownMenu>
             ) : (
               <Button
-                disabled={disableLogin}
-                onClick={login}
+                // disabled={disableLogin}
+                // onClick={login}
+                disabled
                 className="ml-auto text-white bg-transparent rounded-xl transition-all duration-300 ease-in-out cursor-pointer gradient-button"
               >
                 <Wallet color="#4381DF" weight="duotone" /> Connect

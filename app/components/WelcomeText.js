@@ -34,11 +34,11 @@ export function WelcomeText() {
       animate="show"
       className="flex flex-col items-center justify-center space-y-3 md:space-y-6 text-center px-4 py-4 md:py-8"
     >
-      <motion.h1 variants={item} className="text-xl md:text-3xl font-bold text-white tracking-widest">
-        Weave the Digital Tapestry
+      <motion.h1 variants={item} className="text-2xl md:text-4xl font-bold text-white tracking-widest">
+        Asobi
       </motion.h1>
       <motion.p variants={item} className="text-sm md:text-xl text-gray-300 max-w-lg tracking-normal">
-        A generative art canvas
+        A generative ascii art canvas powered by AI
       </motion.p>
       <motion.div variants={item} className="grid grid-cols-2 gap-3 w-full max-w-lg">
         <div className="space-y-0.5">
