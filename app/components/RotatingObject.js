@@ -243,9 +243,9 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
     const CHAR_SETS = [
       // Celestial and Mystical
       "✧●◆△⬡*.✦★", // Original celestial set
-      "✴✺✵✶✷✸✹✻✼", // Mystical set
+      "⚝✴✺✵✶✷✸✹✻", // Mystical set
       "✣✤✥✦✧✪✫✬✭", // Extended celestial
-      "☆★✬✮✯✰⋆✢✣", // Stars variation
+      "⭐⭑⭒⭓⭔✨✯✰⁂", // Stars variation
 
       // Geometric Patterns
       "■□▢▣▤▥▦▧▨", // Geometric set
@@ -253,19 +253,19 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       "◰◱◲◳◴◵◶◷", // Partial circles
       "⬒⬓⬔⬕⬖⬗⬘⬙", // Diamond patterns
       "◢◣◤◥◸◹◺◿", // Triangular patterns
-      "◈◇◆◊○●◐◑", // Modern geometric
+      "⯀⯁⯂⯃⯄⯅⯆⯇⯈", // Modern geometric
 
       // Circles and Dots
       "○●◐◑◒◓◔◕◌", // Minimal circles
       "⊕⊖⊗⊘⊙⊚⊛⊜⊝", // Circled operators
       "⊹⊺⊻⊼⊽⋄⋆⋇⋈", // Circle variations
-      "◉◎●○◌◍◐◑◒", // Dot patterns
+      "⚪⚫⚬⚭⚮⚯⚲⚳⚴", // Astronomical
 
       // Nature and Decorative
       "❋✿❀❃✾✤✣✢❉", // Nature/floral set
-      "✾✿❀❁❂❃❇❈❉", // Floral variations
-      "✢✣✤✥✦✧✪✫✬", // Decorative symbols
-      "❆❇❈❉❊❋✢✣✤", // Winter patterns
+      "❧❦☙✾❀❁❂❃❇", // Floral variations
+      "⚘⚵⚶⚷⚸⚹⚺⚻⚼", // Decorative symbols
+      "❄❅❆❇❈❉❊❋❌", // Winter patterns
 
       // Box Drawing - Basic
       "┌┐└┘├┤┬┴┼", // Basic box corners
@@ -295,7 +295,55 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       "╋╪╬╭╮╯╰╱╲", // Ornate intersections
       "┏┳┓┣╋┫┗┻┛", // Heavy box drawings
       "╒╤╕╞╪╡╘╧╛", // Mixed single-double
-      "╃╄╅╆╇╈╉╊╋", // Contemporary boxes
+      "⯐⯑⯒⯓⯔⯕⯖⯗⯘", // Contemporary boxes
+
+      // ASCII Art - Basic
+      "+-|*/\\[](){}", // Basic ASCII elements
+      "<>^v/\\|_-~", // Directional ASCII
+      ".,;:!?*#@$", // Punctuation patterns
+      "()[]{}><||", // Bracket patterns
+
+      // ASCII Art - Complex
+      "|/-\\|/-\\|", // Spinning patterns
+      ".-*-.-*-.", // Dotted patterns
+      "=^.^==^.^=", // Face patterns
+      ":;:;:;:;:", // Rhythm patterns
+
+      // ASCII Borders
+      "+-++--++--", // Border variations
+      "|\\/|\\/|\\/|", // Zigzag patterns
+      "[]{}()><><", // Container patterns
+      "//\\\\//\\\\//", // Diagonal patterns
+
+      // ASCII Geometric
+      "/_\\|-|/_\\|", // Geometric shapes
+      "|^|v|^|v|^", // Up-down patterns
+      "<>><>><>>", // Arrow patterns
+      "/|\\|-|/|\\|", // Triangle patterns
+
+      // ASCII Decorative
+      ".o0Oo.o0Oo", // Bubble patterns
+      "-=≡=-=≡=-", // Equal patterns
+      "~-^-~-^-~", // Wave patterns
+      "`'`'`'`'`", // Quote patterns
+
+      // ASCII Technical
+      "+|-+|-+|-+", // Circuit patterns
+      "}{}{}{}{}", // Brace patterns
+      "/-\\|-/-\\|", // Path patterns
+      "|=|=|=|=|", // Equal line patterns
+
+      // ASCII Minimal
+      ".,;:.,;:.", // Dot patterns
+      "-_=-_=-_=", // Underscore patterns
+      "~-~-~-~-~", // Tilde patterns
+      '`.,"\'`.,"', // Quote mix patterns
+
+      // ASCII Complex
+      "|\\^/|\\^/|", // Mountain patterns
+      "<|>v<|>v<", // Arrow combinations
+      "[|]=[|]=[", // Box combinations
+      "/=\\|/=\\|/", // Roof patterns
     ];
 
     const CHARS = CHAR_SETS[Math.floor(Math.random() * CHAR_SETS.length)];
