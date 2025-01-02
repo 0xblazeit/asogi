@@ -240,7 +240,37 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       "#ff1744",
     ];
 
-    const CHARS = "✧●◆△⬡*.✦★";
+    const CHAR_SETS = [
+      // Original sets
+      "✧●◆△⬡*.✦★", // Original celestial set
+      "■□▢▣▤▥▦▧▨", // Geometric set
+      "○●◐◑◒◓◔◕◌", // Minimal circles set
+      "❋✿❀❃✾✤✣✢❉", // Nature/floral set
+      "⚝✴✺✵✶✷✸✹✻", // Mystical set
+
+      // Box drawing sets
+      "┌┐└┘├┤┬┴┼", // Basic box corners
+      "═║╔╗╚╝╠╣╦╩", // Double line box
+      "╭╮╯╰│─┆┊┋", // Rounded corners
+      "╱╲╳┼╋╂┿╀╁", // Diagonal patterns
+      "▀▄█▌▐░▒▓■", // Block elements
+
+      // Extended geometric sets
+      "◰◱◲◳◴◵◶◷", // Partial circles
+      "◢◣◤◥◸◹◺◿", // Triangular patterns
+      "⬒⬓⬔⬕⬖⬗⬘⬙", // Diamond patterns
+      "⌘⌙⌤⌥⌡⌠⌢⌣", // Technical symbols
+      "⏣⏤⏥⏦⌬⌭⌮⌯", // Control symbols
+
+      // Advanced box patterns
+      "╄╅╆╇╈╉╊╋", // Complex intersections
+      "┠┨┯┷┿╂╅╈", // Mixed weight lines
+      "┏┓┗┛┣┫┳┻", // Bold corners
+      "╌╍┄┅┈┉╎╏", // Dashed patterns
+      "▰▱▲▼◀▶◢◣", // Filled shapes
+    ];
+
+    const CHARS = CHAR_SETS[Math.floor(Math.random() * CHAR_SETS.length)];
 
     // Modify the OSCILLATION_SPOTS configuration for warmer colors
     const OSCILLATION_SPOTS = Array(5)
