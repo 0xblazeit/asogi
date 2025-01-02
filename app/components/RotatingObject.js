@@ -234,7 +234,7 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       "#ff9e40",
       "#ffac41",
       "#ffcc00",
-      "#ff9100",
+      "#ff8c00",
       "#ff5252",
       "#ff3d00",
       "#ff1744",
@@ -343,7 +343,73 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       "|\\^/|\\^/|", // Mountain patterns
       "<|>v<|>v<", // Arrow combinations
       "[|]=[|]=[", // Box combinations
-      "/=\\|/=\\|/", // Roof patterns
+      "/=\\|/=\\|/", // Roof patterns,
+
+      // Simple Directional Arrows
+      "←→↔↕↖↗↘↙↑↓", // Basic directions
+      "⇐⇒⇔⇕⇖⇗⇘⇙⇑⇓", // Double arrows
+      "↜↝↢↣↤↥↦↧↨↩", // Flow arrows
+      "↪↫↬↭↮↯↰↱↲↳", // Movement arrows
+
+      // Process Flow Arrows
+      "⇄⇅⇆⇇⇈⇉⇊⇋⇌⇍", // Bidirectional
+      "⇎⇏⇐⇑⇒⇓⇔⇕⇖", // Logic flow
+      "⇗⇘⇙⇚⇛⇜⇝⇞⇟", // Process flow
+      "⇠⇡⇢⇣⇤⇥⇦⇧⇨", // Terminal flow
+
+      // Circular Motion
+      "↴↵↶↷↺↻⇀⇁⇂⇃", // Rotation set
+      "⇄⇅↜↭↝⇆⇇⇈⇉⇊", // Cycle arrows
+      "↫↬↩↪⇜⇝⇦⇧⇨⇩", // Return flows
+      "↰↱↲↳↴↵↶↷↸↹", // Corner turns
+
+      // Specialized Arrows
+      "↖↗↘↙⇖⇗⇘⇙⇪↨", // Diagonal set
+      "↼↽↾↿⇀⇁⇂⇃⇋⇌", // Hook arrows
+      "⇍⇎⇏⇐⇑⇒⇓⇔⇕", // Logic symbols
+      "⇤⇥⇦⇧⇨⇩⇪↨↕↔", // Terminal marks
+
+      // Rounded Box Corners
+      "╭╮╯╰╱╲╳╴╵╶", // Basic rounded corners
+      "╭─╮│╰─╯│╭╮", // Simple box
+      "╱╲╳╭╮╯╰──│", // Mixed angles
+      "╭━╮┃╰━╯┃╭╮", // Bold rounded box
+
+      // Rounded Box Patterns
+      "╭╮╯╰╱╲╳╱╲╳", // Corner mix
+      "╭─╮╱╰─╯╲╭╮", // Slashed box
+      "╱╲╳╭╮╯╰╱╲╳", // Angular mix
+      "╭╮╯╰│─╭╮╯╰", // Clean corners
+
+      // Rounded Box Combinations
+      "╭╮╱╲╯╰╳╴╵╶", // Mixed elements
+      "╱╲╭╮╯╰╱╲╳╳", // Diagonal mix
+      "╭─╮╲╰─╯╱╭╮", // Stylized box
+      "╱╲╳╮╯╰╭╱╲╳", // Dynamic angles
+
+      // Block Elements Basic
+      "▐░▒▓▔▕▖▗▘▙", // Basic blocks
+      "▚▛▜▝▞▟░▒▓█", // Mixed blocks
+      "▌▐▀▄█▖▗▘▙▚", // Solid blocks
+      "▛▜▝▞▟▁▂▃▄▅", // Gradient blocks
+
+      // Shading Patterns
+      "░▒▓█▓▒░ ░▒", // Gradient fade
+      "▖▗▘▙▚▛▜▝▞▟", // Quarter blocks
+      "▌▐▀▄░▒▓█▓▒", // Mixed shading
+      "▔▕▖▗▘▙▚▛▜▝", // Thin blocks
+
+      // Block Combinations
+      "█▀▄▌▐░▒▓▔▕", // Mixed weights
+      "▖▗▘▙▚▛▜▝▞▟", // Quarter patterns
+      "▌▐▜▛▞▟▙▚▜▛", // Corner blocks
+      "░▒▓█▓▒░█▓▒", // Gradient mix
+
+      // Advanced Block Patterns
+      "▀▄█▌▐▖▗▘▙▚", // Complex blocks
+      "▛▜▝▞▟░▒▓█▓", // Progressive fill
+      "▗▘▙▚▛▜▝▞▟▖", // Rotating quarters
+      "▔▕▖▗▘▙▚▛▜▝", // Thin variations
     ];
 
     const CHARS = CHAR_SETS[Math.floor(Math.random() * CHAR_SETS.length)];
