@@ -11,8 +11,8 @@ const DepatureMono = localFont({
 });
 
 export const metadata = {
-  title: "Hinata AI",
-  description: "Hinata AI",
+  title: "Asobi",
+  description: "A generative art canvas",
 };
 
 export default function RootLayout({ children }) {

@@ -32,17 +32,29 @@ export function WelcomeText() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="flex flex-col items-center justify-center space-y-4 text-center px-4 py-12 md:py-24"
+      className="flex flex-col items-center justify-center space-y-3 text-center px-4 py-6 md:py-8"
     >
-      <motion.h1 variants={item} className="text-3xl md:text-4xl font-bold text-white tracking-widest">
+      <motion.h1 variants={item} className="text-xl md:text-2xl font-bold text-white tracking-widest">
         Weave the Digital Tapestry
       </motion.h1>
-      <motion.p variants={item} className="text-lg md:text-xl text-gray-400 max-w-2xl">
+      <motion.p variants={item} className="text-sm md:text-lg text-gray-300 max-w-lg tracking-normal">
         A generative art canvas
       </motion.p>
-      <motion.p variants={item} className="text-xs md:text-md text-gray-400 max-w-2xl tracking-tighter font-normal">
-        CHAIN: BASE L2
-      </motion.p>
+      <motion.div variants={item} className="grid grid-cols-2 gap-3 w-full max-w-lg">
+        <div className="space-y-0.5">
+          <div className="text-neutral-300 text-xs font-normal tracking-tight">BLOCKCHAIN</div>
+          <div className="text-neutral-500 text-xs md:text-sm font-normal tracking-tight">░░░░░░░░</div>
+        </div>
+        <div className="space-y-0.5">
+          <div className="text-neutral-300 text-xs font-normal tracking-tight">TOKEN STANDARD</div>
+          <div className="text-neutral-500 text-xs md:text-sm font-normal tracking-tight">░░░░░░░░</div>
+        </div>
+      </motion.div>
+
+      <motion.div variants={item} className="space-y-0.5 w-full max-w-lg">
+        <div className="text-neutral-300 text-xs font-normal tracking-tight">CONTRACT ADDRESS</div>
+        <div className="text-neutral-500 text-xs md:text-sm font-normal tracking-tight">░░░░░░░░░░░░░░░░░░░░</div>
+      </motion.div>
     </motion.div>
   );
 }
