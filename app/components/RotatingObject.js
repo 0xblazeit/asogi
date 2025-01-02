@@ -268,6 +268,18 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       "┏┓┗┛┣┫┳┻", // Bold corners
       "╌╍┄┅┈┉╎╏", // Dashed patterns
       "▰▱▲▼◀▶◢◣", // Filled shapes
+
+      // New box-themed sets
+      "╋╪╬╭╮╯╰╱╲", // Ornate intersections
+      "┏┳┓┣╋┫┗┻┛", // Heavy box drawings
+      "╒╤╕╞╪╡╘╧╛", // Mixed single-double
+      "▁▂▃▄▅▆▇█", // Gradient blocks
+      "░▒▓█▇▆▅▄", // Shading patterns
+      "╭─╮│╰─╯│", // Rounded box elements
+      "┌╌┐╎└╌┘╎", // Dashed box patterns
+      "▛▜▝▞▟▙▚▌▐", // Block combinations
+      "╔╦╗╠╬╣╚╩╝", // Double-line complete
+      "┏╍┓┇┗╍┛┇", // Mixed style borders
     ];
 
     const CHARS = CHAR_SETS[Math.floor(Math.random() * CHAR_SETS.length)];
