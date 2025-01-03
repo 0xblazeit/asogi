@@ -46,7 +46,7 @@ export default function Navbar() {
           queryClient.invalidateQueries({ queryKey: ["memberCount"] });
         }
         toast({
-          title: "Welcome to Asobi ^_^",
+          title: "Welcome to Asogi ^_^",
           description: "creativity in motion awaits",
         });
       } else {
@@ -54,7 +54,7 @@ export default function Navbar() {
           await updateExistingLogin(user.twitter.username, user.twitter.profilePictureUrl, user.wallet.address);
         }
         toast({
-          title: "Welcome back to Asobi ^_^",
+          title: "Welcome back to Asogi ^_^",
           description: "creativity in motion awaits",
         });
       }
@@ -92,9 +92,9 @@ export default function Navbar() {
           <div className="flex items-center space-x-2">
             <Link href="/" className="flex items-center space-x-2">
               <div className="relative size-12 md:size-20">
-                <Image src="/logo-asobi.svg" alt="Asobi" fill className="object-contain w-full h-full" priority />
+                <Image src="/logo-asogi.svg" alt="asogi" fill className="object-contain w-full h-full" priority />
               </div>
-              <h1 className="text-3xl font-bold text-white md:text-5xl tracking-wide">Asobi</h1>
+              <h1 className="text-3xl font-bold text-white md:text-5xl tracking-wide">Asogi</h1>
             </Link>
           </div>
           <div className="flex items-center space-x-4">

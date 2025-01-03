@@ -35,7 +35,7 @@ export function WelcomeText() {
       className="flex flex-col items-center justify-center space-y-3 md:space-y-6 text-center px-4 py-4 md:py-8"
     >
       <motion.h1 variants={item} className="text-2xl md:text-4xl font-bold text-white tracking-widest">
-        Asobi
+        Asogi
       </motion.h1>
       <motion.p variants={item} className="text-sm md:text-xl text-gray-300 max-w-lg tracking-normal">
         A generative ascii art canvas

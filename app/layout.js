@@ -11,7 +11,7 @@ const DepatureMono = localFont({
 });
 
 export const metadata = {
-  title: "Asobi",
+  title: "Asogi",
   description: "A generative art canvas",
 };
 

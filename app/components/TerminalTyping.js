@@ -13,7 +13,7 @@ const asciiArt = `
 `;
 
 const messages = [
-  "> Initializing ASOBI system...",
+  "> Initializing asogi system...",
   "> CHAIN: BASE L2",
   "> SUPPLY: 1696",
   "> TOKEN STANDARD: ERC720",
@@ -82,7 +82,7 @@ export function TerminalTyping() {
       <div className="bg-black/40 rounded-lg p-3 sm:p-4 text-green-400 shadow-xl border border-green-500/20">
         <div className="flex items-center gap-2 mb-3 sm:mb-4 border-b border-green-500/20 pb-2">
           <Terminal className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span className="text-xs sm:text-sm">ASOBI Terminal</span>
+          <span className="text-xs sm:text-sm">asogi Terminal</span>
         </div>
 
         <AnimatePresence mode="popLayout">

@@ -27,8 +27,8 @@ export function Providers({ children }) {
           accentColor: "#f39c12",
           logo:
             process.env.NODE_ENV === "development"
-              ? "http://localhost:3000/logo-asobi.png"
-              : `${process.env.NEXT_PUBLIC_APP_URL}/logo-asobi.png`,
+              ? "http://localhost:3000/logo-asogi.png"
+              : `${process.env.NEXT_PUBLIC_APP_URL}/logo-asogi.png`,
         },
         embeddedWallets: {
           createOnLogin: "users-without-wallets", // defaults to 'off'

@@ -43,7 +43,7 @@ export default function FooterContent() {
       <div className="flex items-center justify-between h-full">
         {/* Version */}
         <div className="flex items-center space-x-1 md:space-x-2 text-zinc-400">
-          <span className="text-[9px] md:text-[12px] md:text-xs">ASOBI v.BETA</span>
+          <span className="text-[9px] md:text-[12px] md:text-xs">ASOGI v.BETA</span>
         </div>
 
         <div className="flex items-center space-x-2 md:space-x-4">
