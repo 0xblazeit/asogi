@@ -63,17 +63,8 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
     const R2 = 1.2;
     const K2 = 5;
 
-    // Performance optimization constants
-    const PERFORMANCE_CONFIG = {
-      frameInterval: 1000 / 30, // Cap at 30 FPS
-      thetaStep: 0.08, // Reduced resolution (was 0.06)
-      phiStep: 0.08, // Reduced resolution
-      screenDivisor: 18, // Increased from 15 for fewer pixels
-      skipFrames: 2, // Only process every nth frame for heavy calculations
-      currentFrame: 0,
-      lastFrameTime: 0,
-      useAdaptiveResolution: true,
-    };
+    // Dynamic performance configuration
+    const PERFORMANCE_CONFIG = getPerformanceConfig();
 
     // Color state management
     const colorState = {
@@ -1069,4 +1060,42 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       <canvas ref={canvasRef} className="w-full h-full" />
     </div>
   );
+}
+
+function getPerformanceConfig() {
+  // Check if window is available (client-side)
+  if (typeof window === 'undefined') {
+    return {
+      frameInterval: 1000 / 30,
+      thetaStep: 0.08,
+      phiStep: 0.08,
+      screenDivisor: 18,
+      skipFrames: 2,
+      currentFrame: 0,
+      lastFrameTime: 0
+    };
+  }
+
+  // Get device pixel ratio and screen size
+  const pixelRatio = window.devicePixelRatio || 1;
+  const screenWidth = window.screen.width;
+  const screenHeight = window.screen.height;
+
+  // Performance heuristics
+  const isLowPerformanceDevice = (
+    screenWidth < 1280 || 
+    pixelRatio > 2 || 
+    (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4)
+  );
+
+  // Adaptive configuration
+  return {
+    frameInterval: 1000 / (isLowPerformanceDevice ? 20 : 30),
+    thetaStep: isLowPerformanceDevice ? 0.1 : 0.08,
+    phiStep: isLowPerformanceDevice ? 0.1 : 0.08,
+    screenDivisor: isLowPerformanceDevice ? 25 : 18,
+    skipFrames: isLowPerformanceDevice ? 3 : 2,
+    currentFrame: 0,
+    lastFrameTime: 0
+  };
 }
