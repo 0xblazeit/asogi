@@ -40,7 +40,7 @@ export function RetroCountdown() {
 
   useEffect(() => {
     setIsClient(true);
-    const targetDate = new Date("2025-01-06T16:20:00-05:00");
+    const targetDate = new Date("2025-01-09T16:20:00-05:00");
 
     const updateTimeLeft = () => {
       setTimeLeft(calculateTimeLeft(targetDate));
@@ -70,16 +70,38 @@ export function RetroCountdown() {
   }
 
   return (
-    <div className="flex items-center space-x-2 p-2 rounded-lg">
-      <HourglassMedium className="text-gray-200 size-5 md:size-8" weight="fill" />
-      <div className="flex space-x-1 text-gray-200 text-xl">
-        <div className="p-1 rounded">{padZero(timeLeft.days)}</div>
-        <span>:</span>
-        <div className="p-1 rounded">{padZero(timeLeft.hours)}</div>
-        <span>:</span>
-        <div className="p-1 rounded">{padZero(timeLeft.minutes)}</div>
-        <span>:</span>
-        <div className="p-1 rounded">{padZero(timeLeft.seconds)}</div>
+    <div className="flex items-center justify-center space-x-2 sm:space-x-4 p-2 rounded-lg">
+      <HourglassMedium className="text-gray-200 size-6 md:size-8 lg:size-10" weight="fill" />
+      <div className="flex flex-col items-center">
+        <div className="flex space-x-1 sm:space-x-2 md:space-x-4 text-gray-200 text-base sm:text-lg md:text-xl lg:text-2xl">
+          <div className="flex flex-col items-center">
+            <div className="p-1 rounded">{padZero(timeLeft.days)}</div>
+            <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-tighter sm:tracking-normal">
+              Day
+            </div>
+          </div>
+          <span className="self-center">:</span>
+          <div className="flex flex-col items-center">
+            <div className="p-1 rounded">{padZero(timeLeft.hours)}</div>
+            <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-tighter sm:tracking-normal">
+              Hours
+            </div>
+          </div>
+          <span className="self-center">:</span>
+          <div className="flex flex-col items-center">
+            <div className="p-1 rounded">{padZero(timeLeft.minutes)}</div>
+            <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-tighter sm:tracking-normal">
+              Mins
+            </div>
+          </div>
+          <span className="self-center">:</span>
+          <div className="flex flex-col items-center">
+            <div className="p-1 rounded">{padZero(timeLeft.seconds)}</div>
+            <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-tighter sm:tracking-normal">
+              Secs
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
