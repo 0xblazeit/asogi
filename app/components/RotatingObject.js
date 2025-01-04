@@ -1065,7 +1065,7 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
   }
 
   return (
-    <div className="fixed inset-0 bg-[#000810]">
+    <div className="absolute z-[-1] inset-0 bg-[#000810]">
       <canvas ref={canvasRef} className="w-full h-full" />
     </div>
   );

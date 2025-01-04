@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   },
   {
     icon: Binary,
-    href: "/binary",
+    href: "/about",
     label: "Binary",
   },
   {
