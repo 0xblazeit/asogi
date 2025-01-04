@@ -56,7 +56,7 @@ export default function FooterContent() {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}`
-                  : "--.--"}
+                  : ""}
               </span>
             </div>
           </div>
