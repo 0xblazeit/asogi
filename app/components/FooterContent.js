@@ -26,7 +26,7 @@ export default function FooterContent() {
     queryKey: ["baseBlock"],
     queryFn: fetchBaseBlock,
     refetchOnWindowFocus: true,
-    refetchInterval: 12000, // Refetch every 12 seconds
+    refetchInterval: 120000, // Refetch every 2 minutes
   });
 
   const { data: gasData, isLoading: isGasLoading } = useQuery({

@@ -85,7 +85,7 @@ export function VerticalNavbar() {
                 <Icon
                   weight={pathname === href ? "fill" : "thin"}
                   className={`
-                    w-4 h-4 sm:w-6 sm:h-6
+                    size-6 md:size-8
                     ${pathname === href ? "text-blue-600" : "text-gray-200"}
                   `}
                 />
