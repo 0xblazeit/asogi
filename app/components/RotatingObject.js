@@ -98,7 +98,7 @@ export default function RotatingObject({
 
     // Burst animation constants
     const burstConfig = {
-      timeBetweenBursts: 2000,
+      timeBetweenBursts: 4000,
       burstChance: 0.6,
       maxProgress: 1.2,
       progressIncrement: 0.02,
