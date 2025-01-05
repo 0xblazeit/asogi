@@ -34,10 +34,10 @@ export function WelcomeText() {
       animate="show"
       className="flex flex-col items-center justify-center space-y-5 md:space-y-8 text-center px-4 py-4 md:py-8"
     >
-      <motion.h1 variants={item} className="text-3xl md:text-5xl font-bold text-white tracking-widest">
+      <motion.h1 variants={item} className="text-3xl md:text-4xl font-bold text-white tracking-widest">
         A generative ascii art project
       </motion.h1>
-      <motion.p variants={item} className="text-xl md:text-2xl text-gray-300 max-w-lg tracking-normal">
+      <motion.p variants={item} className="text-lg md:text-xl text-gray-300 max-w-lg tracking-normal">
         dynamic morphing 3D art within a 2D canvas
       </motion.p>
       <motion.div variants={item} className="grid grid-cols-2 gap-3 w-full max-w-lg">

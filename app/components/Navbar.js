@@ -91,10 +91,10 @@ export default function Navbar() {
         <div className="container flex relative justify-between items-center px-4 py-4 mx-auto">
           <div className="flex items-center space-x-2">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="relative size-12 md:size-20">
+              <div className="relative size-12 md:size-18">
                 <Image src="/logo-asogi.svg" alt="asogi" fill className="object-contain w-full h-full" priority />
               </div>
-              <h1 className="text-3xl font-bold text-white md:text-5xl tracking-wide">Asogi</h1>
+              <h1 className="text-3xl font-bold text-white md:text-4xl tracking-wide">Asogi</h1>
             </Link>
           </div>
           <div className="flex items-center space-x-4">
