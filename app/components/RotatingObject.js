@@ -6,6 +6,13 @@ const easeInQuart = (x) => x * x * x * x;
 const easeInOutQuart = (x) => (x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2);
 
 export default function RotatingObject({ walletAddress = "", canvasRef: externalCanvasRef }) {
+  // Generate a random Ethereum-like wallet address if no address is provided
+  const randomWalletAddress = !walletAddress
+    ? `0x${Array.from(crypto.getRandomValues(new Uint8Array(20)), (byte) => byte.toString(16).padStart(2, "0")).join(
+        ""
+      )}`
+    : walletAddress;
+
   const internalCanvasRef = useRef(null);
   const canvasRef = externalCanvasRef || internalCanvasRef;
 
@@ -56,7 +63,7 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
       };
     };
 
-    const uniqueParams = generateUniqueParams(walletAddress);
+    const uniqueParams = generateUniqueParams(randomWalletAddress);
 
     // Constants for shape geometry
     const R1 = 0.6;
@@ -66,13 +73,13 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
     // Performance optimization constants
     const PERFORMANCE_CONFIG = {
       frameInterval: 1000 / 30, // Cap at 30 FPS
-      thetaStep: 0.08, // Reduced resolution (was 0.06)
-      phiStep: 0.08, // Reduced resolution
-      screenDivisor: 18, // Increased from 15 for fewer pixels
-      skipFrames: 2, // Only process every nth frame for heavy calculations
-      currentFrame: 0,
-      lastFrameTime: 0,
-      useAdaptiveResolution: true,
+      thetaStep: 0.15, // Reduced resolution for performance optimization
+      phiStep: 0.15, // Reduced resolution for performance optimization
+      screenDivisor: 25, // Increased divisor for fewer pixels, improving performance
+      skipFrames: 5, // Only process every nth frame for heavy calculations to reduce load
+      currentFrame: 0, // Track the current frame number
+      lastFrameTime: 0, // Track the time of the last frame
+      useAdaptiveResolution: true, // Flag to enable adaptive resolution
     };
 
     // Color state management
@@ -1044,7 +1051,7 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
     return () => {
       window.removeEventListener("resize", updateCanvasSize);
     };
-  }, [canvasRef, walletAddress]);
+  }, [randomWalletAddress]);
 
   function interpolateColors(color1, color2, factor) {
     const r1 = parseInt(color1.substring(1, 3), 16);
