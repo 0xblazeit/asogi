@@ -13,11 +13,6 @@ const NAV_ITEMS = [
     label: "Home",
   },
   {
-    icon: Binary,
-    href: "/about",
-    label: "Binary",
-  },
-  {
     icon: Placeholder,
     href: "/redacted",
     label: "Redacted",
