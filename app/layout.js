@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${DepatureMono.className} antialiased`}>
         <Providers>
-          <RotatingObject />
+          <RotatingObject key="persistent-background" />
           <NavBar />
           <VerticalNavbar />
           {children}
