@@ -101,7 +101,7 @@ export default function Navbar() {
             {ready && authenticated ? (
               <DropdownMenu onOpenChange={setIsMenuOpen}>
                 <DropdownMenuTrigger asChild>
-                  <Avatar className="size-8 md:size-12 cursor-pointer ring-2 ring-[#F5A190] transition-all hover:ring-[#f39c12]">
+                  <Avatar className="size-8 md:size-12 cursor-pointer ring-2 ring-[#F1762F] transition-all hover:ring-[#F1762F]">
                     <AvatarImage src={avatarImage} alt="" />
                     <AvatarFallback>{user?.wallet?.address ? user.wallet.address.slice(0, 4) : "gm"}</AvatarFallback>
                   </Avatar>
@@ -136,7 +136,7 @@ export default function Navbar() {
                 disabled
                 className="ml-auto text-white bg-transparent rounded-xl transition-all duration-300 ease-in-out cursor-pointer gradient-button"
               >
-                <Wallet color="#4381DF" weight="duotone" /> Connect
+                <Wallet color="#F1762F" weight="duotone" /> Connect
               </Button>
             )}
           </div>
