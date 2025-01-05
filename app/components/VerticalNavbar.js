@@ -73,7 +73,7 @@ export function VerticalNavbar() {
                 className={`
                   p-1.5 sm:p-2 rounded-lg transition-all duration-300 ease-in-out
                   flex items-center justify-center
-                  ${pathname === href ? "bg-blue-500/20 ring-1 ring-blue-500/50" : "hover:bg-green-200/50"}
+                  ${pathname === href ? "bg-[#F1762F]/20 ring-1 ring-[#F1762F]/50" : "hover:bg-[#F1762F]/20"}
                 `}
                 aria-label={label}
               >
@@ -81,7 +81,7 @@ export function VerticalNavbar() {
                   weight={pathname === href ? "fill" : "thin"}
                   className={`
                     size-6 md:size-8
-                    ${pathname === href ? "text-blue-600" : "text-gray-200"}
+                    ${pathname === href ? "text-[#F1762F]" : "text-gray-200"}
                   `}
                 />
               </Link>
