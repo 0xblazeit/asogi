@@ -66,13 +66,13 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
     // Performance optimization constants
     const PERFORMANCE_CONFIG = {
       frameInterval: 1000 / 30, // Cap at 30 FPS
-      thetaStep: 0.08, // Reduced resolution (was 0.06)
-      phiStep: 0.08, // Reduced resolution
-      screenDivisor: 18, // Increased from 15 for fewer pixels
-      skipFrames: 2, // Only process every nth frame for heavy calculations
-      currentFrame: 0,
-      lastFrameTime: 0,
-      useAdaptiveResolution: true,
+      thetaStep: 0.12, // Reduced resolution for performance optimization
+      phiStep: 0.12, // Reduced resolution for performance optimization
+      screenDivisor: 20, // Increased divisor for fewer pixels, improving performance
+      skipFrames: 3, // Only process every nth frame for heavy calculations to reduce load
+      currentFrame: 0, // Track the current frame number
+      lastFrameTime: 0, // Track the time of the last frame
+      useAdaptiveResolution: true, // Flag to enable adaptive resolution
     };
 
     // Color state management
