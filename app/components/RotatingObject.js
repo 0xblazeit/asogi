@@ -78,8 +78,8 @@ export default function RotatingObject({
       frameInterval: 1000 / 30, // Cap at 30 FPS
       thetaStep: 0.15, // Reduced resolution for performance optimization
       phiStep: 0.15, // Reduced resolution for performance optimization
-      screenDivisor: 14, // control ascii character size
-      skipFrames: 5, // Only process every nth frame for heavy calculations to reduce load
+      screenDivisor: 10, // control ascii character size (MIN: 5, MAX:100)
+      skipFrames: 7, // Only process every nth frame for heavy calculations to reduce load. (lower screenDivisor = higher skipFrames : for better performance)
       currentFrame: 0, // Track the current frame number
       lastFrameTime: 0, // Track the time of the last frame
       useAdaptiveResolution: true, // Flag to enable adaptive resolution
