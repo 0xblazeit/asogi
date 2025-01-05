@@ -72,7 +72,7 @@ export default function RotatingObject({ walletAddress = "", canvasRef: external
 
     // Performance optimization constants
     const PERFORMANCE_CONFIG = {
-      frameInterval: 1000 / 30, // Cap at 30 FPS
+      frameInterval: 1000 / 40, // Cap at 40 FPS
       thetaStep: 0.14, // Reduced resolution for performance optimization
       phiStep: 0.14, // Reduced resolution for performance optimization
       screenDivisor: 22, // Increased divisor for fewer pixels, improving performance
