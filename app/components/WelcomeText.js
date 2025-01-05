@@ -33,7 +33,7 @@ export function WelcomeText() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="flex flex-col items-center justify-center space-y-3 md:space-y-8 text-center px-4 py-4 md:py-8"
+      className="flex flex-col items-center justify-center space-y-3 md:space-y-5 text-center px-4 py-4 md:py-8"
     >
       <motion.h1 variants={item} className="text-3xl md:text-4xl font-bold text-white tracking-widest">
         A generative ASCII art project
