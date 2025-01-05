@@ -78,7 +78,7 @@ export default function RotatingObject({
       frameInterval: 1000 / 30, // Cap at 30 FPS
       thetaStep: 0.15, // Reduced resolution for performance optimization
       phiStep: 0.15, // Reduced resolution for performance optimization
-      screenDivisor: 25, // Increased divisor for fewer pixels, improving performance
+      screenDivisor: 20, // Reduced from 25 to 20 for wider coverage
       skipFrames: 5, // Only process every nth frame for heavy calculations to reduce load
       currentFrame: 0, // Track the current frame number
       lastFrameTime: 0, // Track the time of the last frame
@@ -983,11 +983,11 @@ export default function RotatingObject({
       context.fillStyle = "#000810";
       context.fillRect(0, 0, canvas.width, canvas.height);
 
-      const charSize = Math.min(canvas.width / (SCREEN_WIDTH + 8), canvas.height / (SCREEN_HEIGHT + 8));
+      const charSize = Math.min((canvas.width + 32) / SCREEN_WIDTH, (canvas.height + 32) / SCREEN_HEIGHT);
       context.font = `${charSize}px monospace`;
 
-      const startX = (canvas.width - SCREEN_WIDTH * charSize) / 2;
-      const startY = (canvas.height - SCREEN_HEIGHT * charSize) / 2;
+      const startX = (canvas.width - SCREEN_WIDTH * charSize) / 2 - charSize;
+      const startY = (canvas.height - SCREEN_HEIGHT * charSize) / 2 - charSize;
 
       if (SPLIT_STATE.active) {
         const splitGlowIntensity = SPLIT_STATE.splitIntensity * 3;
