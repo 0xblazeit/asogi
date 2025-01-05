@@ -743,6 +743,17 @@ export default function RotatingObject({
       return angle;
     }
 
+    // Add these new state variables after SPLIT_STATE
+    const DEPTH_LAYER = {
+      rotation: 0,
+      speed: 0.003,
+      amplitude: 0.4,
+      frequency: 1.2,
+      depthScale: 0.8,
+      zOffset: 2.5, // Controls how far "behind" the main shape this layer appears
+      independentTime: 0,
+    };
+
     const renderFrame = () => {
       const now = Date.now();
       const elapsed = now - PERFORMANCE_CONFIG.lastFrameTime;
@@ -834,6 +845,16 @@ export default function RotatingObject({
       updateConcentrationState(time);
 
       updateSplitState(time);
+
+      // Update depth layer rotation independently
+      DEPTH_LAYER.independentTime += 0.02;
+      DEPTH_LAYER.rotation += DEPTH_LAYER.speed;
+
+      // Create independent rotation matrices for depth layer
+      const depthCosA = Math.cos(DEPTH_LAYER.rotation);
+      const depthSinA = Math.sin(DEPTH_LAYER.rotation);
+      const depthCosB = Math.cos(DEPTH_LAYER.rotation * 0.7);
+      const depthSinB = Math.sin(DEPTH_LAYER.rotation * 0.7);
 
       const thetaMax = 2 * Math.PI;
       const phiMax = Math.PI;
@@ -949,19 +970,60 @@ export default function RotatingObject({
 
           const zSplit = z * splitEffect.scale + splitEffect.intensity * Math.sin(phi * 5 + time * 4) * 0.4;
 
-          const ooz = 1 / zSplit;
-          const xp = Math.floor(SCREEN_WIDTH / 2 + K1 * ooz * xSplit);
-          const yp = Math.floor(SCREEN_HEIGHT / 2 - K1 * ooz * ySplit);
+          // Calculate depth layer coordinates
+          const depthMorphFactor =
+            Math.sin(
+              DEPTH_LAYER.independentTime * DEPTH_LAYER.frequency + thetaIndex * PERFORMANCE_CONFIG.thetaStep * 2
+            ) * DEPTH_LAYER.amplitude;
 
+          const depthR1 = R1 * DEPTH_LAYER.depthScale * (1 + depthMorphFactor);
+          const depthR2 = R2 * DEPTH_LAYER.depthScale * (1 + depthMorphFactor * 0.5);
+
+          const depthCircleX = depthR2 + depthR1 * cosTheta;
+          const depthCircleY = depthR1 * sinTheta;
+
+          const depthX =
+            depthCircleX * (depthCosB * cosPhi + depthSinA * depthSinB * sinPhi) -
+            depthCircleY * Math.cos(DEPTH_LAYER.rotation) * depthSinB;
+          const depthY =
+            depthCircleX * (depthSinB * cosPhi - depthSinA * depthCosB * sinPhi) +
+            depthCircleY * Math.cos(DEPTH_LAYER.rotation) * depthCosB;
+          const depthZ =
+            K2 +
+            DEPTH_LAYER.zOffset +
+            Math.cos(DEPTH_LAYER.rotation) * depthCircleX * sinPhi +
+            depthCircleY * Math.sin(DEPTH_LAYER.rotation);
+
+          // Combine main layer and depth layer
+          const combinedX = xSplit;
+          const combinedY = ySplit;
+          const combinedZ = Math.min(zSplit, depthZ); // Use smaller Z value to handle overlapping
+
+          // Update projection calculations with combined coordinates
+          const ooz = 1 / combinedZ;
+          const xp = Math.floor(SCREEN_WIDTH / 2 + K1 * ooz * combinedX);
+          const yp = Math.floor(SCREEN_HEIGHT / 2 - K1 * ooz * combinedY);
+
+          // Calculate main shape luminance
           const L =
             (cosPhi * cosTheta * sinB -
               cosA * cosTheta * sinPhi -
               sinA * sinTheta +
               cosB * (cosA * sinTheta - cosTheta * sinA * sinPhi)) *
-              (1 + Math.abs(electricField) + Math.abs(pulse) + Math.abs(twistEffect)) +
-            splitEffect.intensity * 1.2;
+            0.7;
 
-          if (L > 0 && xp >= 0 && xp < SCREEN_WIDTH && yp >= 0 && yp < SCREEN_HEIGHT) {
+          // Calculate depth layer luminance
+          const depthL =
+            (cosPhi * cosTheta * depthSinB -
+              Math.cos(DEPTH_LAYER.rotation) * cosTheta * sinPhi -
+              Math.sin(DEPTH_LAYER.rotation) * sinTheta +
+              depthCosB *
+                (Math.cos(DEPTH_LAYER.rotation) * sinTheta - cosTheta * Math.sin(DEPTH_LAYER.rotation) * sinPhi)) *
+            0.7;
+
+          const combinedL = Math.max(L, depthL);
+
+          if (combinedL > 0 && xp >= 0 && xp < SCREEN_WIDTH && yp >= 0 && yp < SCREEN_HEIGHT) {
             const pos = xp + yp * SCREEN_WIDTH;
             if (ooz > permanentZBuffer[pos]) {
               permanentZBuffer[pos] = ooz;
@@ -972,7 +1034,7 @@ export default function RotatingObject({
               } else if (sparkChance > 0.95) {
                 char = CHARS[CHARS.length - 1];
               } else {
-                char = CHARS[Math.floor((L * 8 + time) % (CHARS.length - 2)) + 1];
+                char = CHARS[Math.floor((combinedL * 8 + time) % (CHARS.length - 2)) + 1];
               }
               permanentOutput[pos] = char;
             }
