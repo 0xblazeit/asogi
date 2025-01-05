@@ -33,12 +33,12 @@ export function WelcomeText() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="flex flex-col items-center justify-center space-y-3 md:space-y-5 text-center px-4 py-4 md:py-8"
+      className="flex flex-col items-center justify-center space-y-1.5 md:space-y-5 text-center px-4 py-4 md:py-8"
     >
-      <motion.h1 variants={item} className="text-3xl md:text-4xl font-bold text-white tracking-widest">
+      <motion.h1 variants={item} className="text-xl md:text-3xl font-bold text-white tracking-widest">
         A generative ASCII art project
       </motion.h1>
-      <motion.p variants={item} className="text-lg md:text-xl text-gray-300 max-w-lg tracking-normal">
+      <motion.p variants={item} className="text-base md:text-lg text-gray-300 max-w-lg tracking-normal">
         Inspired by a{" "}
         <a
           href="https://www.a1k0n.net/2011/07/20/donut-math.html"
