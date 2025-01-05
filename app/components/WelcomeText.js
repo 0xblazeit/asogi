@@ -40,6 +40,15 @@ export function WelcomeText() {
       <motion.p variants={item} className="text-lg md:text-xl text-gray-300 max-w-lg tracking-normal">
         The intersection of structured algorithms and chaotic beauty
       </motion.p>
+      <motion.p variants={item} className="text-xs md:text-sm text-gray-300 max-w-lg tracking-normal">
+        Inspired by a{" "}
+        <a
+          href="https://www.a1k0n.net/2011/07/20/donut-math.html"
+          className="underline hover:text-white transition-colors"
+        >
+          rotating donut
+        </a>
+      </motion.p>
       <motion.div variants={item} className="grid grid-cols-2 gap-3 w-full max-w-lg">
         <div className="space-y-0.5">
           <div className="text-neutral-300 text-xs md:text-sm font-normal tracking-tight">BLOCKCHAIN</div>
