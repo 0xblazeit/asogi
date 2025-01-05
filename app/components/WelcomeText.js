@@ -35,15 +35,14 @@ export function WelcomeText() {
       className="flex flex-col items-center justify-center space-y-5 md:space-y-8 text-center px-4 py-4 md:py-8"
     >
       <motion.h1 variants={item} className="text-3xl md:text-4xl font-bold text-white tracking-widest">
-        A 3D generative ASCII art project
+        A generative ASCII art project
       </motion.h1>
       <motion.p variants={item} className="text-lg md:text-xl text-gray-300 max-w-lg tracking-normal">
-        The intersection of structured algorithms and chaotic beauty
-      </motion.p>
-      <motion.p variants={item} className="text-xs md:text-sm text-gray-300 max-w-lg tracking-normal">
         Inspired by a{" "}
         <a
           href="https://www.a1k0n.net/2011/07/20/donut-math.html"
+          target="_blank"
+          rel="noopener noreferrer"
           className="underline hover:text-white transition-colors"
         >
           rotating donut
