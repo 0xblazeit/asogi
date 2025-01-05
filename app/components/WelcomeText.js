@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { RetroCountdown } from "./RetroCountdown";
+import { ChartDonut } from "@phosphor-icons/react";
 const container = {
   hidden: { opacity: 0 },
   show: {
@@ -48,6 +49,26 @@ export function WelcomeText() {
           rotating donut
         </a>
       </motion.p>
+      <motion.div variants={item} className="flex items-center justify-center">
+        <motion.div
+          animate={{
+            rotateY: 360,
+            rotateZ: 360,
+          }}
+          transition={{
+            duration: 8,
+            ease: "linear",
+            repeat: Infinity,
+          }}
+          style={{
+            transformStyle: "preserve-3d",
+            perspective: 1000,
+          }}
+        >
+          <ChartDonut className="size-6 md:size-8" />
+        </motion.div>
+      </motion.div>
+
       <motion.div variants={item} className="grid grid-cols-2 gap-3 w-full max-w-lg">
         <div className="space-y-0.5">
           <div className="text-neutral-300 text-xs md:text-sm font-normal tracking-tight">BLOCKCHAIN</div>
