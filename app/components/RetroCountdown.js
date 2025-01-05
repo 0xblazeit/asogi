@@ -73,7 +73,7 @@ export function RetroCountdown() {
     <div className="flex items-center justify-center space-x-2 sm:space-x-4 p-2 rounded-lg">
       <HourglassMedium className="text-gray-200 size-6 md:size-8 lg:size-10" weight="fill" />
       <div className="flex flex-col items-center">
-        <div className="flex space-x-1 sm:space-x-2 md:space-x-4 text-gray-200 text-base sm:text-lg md:text-xl lg:text-2xl">
+        <div className="flex space-x-1 sm:space-x-2 md:space-x-4 text-gray-200 text-base md:text-lg">
           <div className="flex flex-col items-center">
             <div className="p-1 rounded">{padZero(timeLeft.days)}</div>
             <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-tighter sm:tracking-normal">

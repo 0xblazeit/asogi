@@ -5,7 +5,10 @@ const easeOutQuart = (x) => 1 - Math.pow(1 - x, 4);
 const easeInQuart = (x) => x * x * x * x;
 const easeInOutQuart = (x) => (x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2);
 
-export default function RotatingObject({ walletAddress = "", canvasRef: externalCanvasRef }) {
+export default function RotatingObject({
+  walletAddress = "0xcEB780385e065697369R33a07466403518D035fB",
+  canvasRef: externalCanvasRef,
+}) {
   // Generate a random Ethereum-like wallet address if no address is provided
   const randomWalletAddress = !walletAddress
     ? `0x${Array.from(crypto.getRandomValues(new Uint8Array(20)), (byte) => byte.toString(16).padStart(2, "0")).join(
