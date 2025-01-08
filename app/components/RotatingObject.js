@@ -79,7 +79,7 @@ export default function RotatingObject({
       thetaStep: 0.15, // Reduced resolution for performance optimization
       phiStep: 0.15, // Reduced resolution for performance optimization
       screenDivisor: 10, // control ascii character size (MIN: 5, MAX:100)
-      skipFrames: 7, // Only process every nth frame for heavy calculations to reduce load. (lower screenDivisor = higher skipFrames : for better performance)
+      skipFrames: 9, // Only process every nth frame for heavy calculations to reduce load. (lower screenDivisor = higher skipFrames : for better performance)
       currentFrame: 0, // Track the current frame number
       lastFrameTime: 0, // Track the time of the last frame
       useAdaptiveResolution: true, // Flag to enable adaptive resolution
