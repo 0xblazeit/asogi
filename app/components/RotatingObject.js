@@ -42,16 +42,16 @@ export default function RotatingObject({
         saturationOffset: parseInt(colorSegment.slice(0, 2), 16) % 50,
 
         // Morphing parameters
-        morphIntensity: 0.8 + (parseInt(morphSegment, 16) / 16 ** 8) * 0.7,
-        morphFrequency: 0.8 + parseInt(morphSegment.slice(0, 4), 16) / 16 ** 4,
+        morphIntensity: 1.2 + (parseInt(morphSegment, 16) / 16 ** 8) * 0.9,
+        morphFrequency: 1.5 + parseInt(morphSegment.slice(0, 4), 16) / 16 ** 4,
 
         // Speed parameters
         speedFactor: 0.5 + parseInt(speedSegment, 16) / 16 ** 4,
         rotationDirection: parseInt(speedSegment.slice(0, 2), 16) % 2 === 0 ? 1 : -1,
 
         // Pattern parameters
-        patternScale: 0.8 + parseInt(patternSegment, 16) / 16 ** 8,
-        patternComplexity: 2 + (parseInt(patternSegment.slice(0, 4), 16) % 7),
+        patternScale: 1.2 + parseInt(patternSegment, 16) / 16 ** 8,
+        patternComplexity: 3 + (parseInt(patternSegment.slice(0, 4), 16) % 9),
 
         // Pulse parameters
         pulseIntensity: 0.3 + (parseInt(pulseSegment, 16) / 16 ** 6) * 0.7,
@@ -65,17 +65,18 @@ export default function RotatingObject({
         shapeVariation: parseInt(shapeSegment, 16) / 16 ** 2,
 
         // Add new abstract parameters
-        distortionFactor: 0.4 + (parseInt(glowSegment, 16) / 16 ** 6) * 0.8,
-        noiseFrequency: 1.2 + parseInt(speedSegment.slice(0, 2), 16) / 16 ** 2,
+        distortionFactor: 0.8 + (parseInt(glowSegment, 16) / 16 ** 6) * 1.2,
+        noiseFrequency: 2.0 + parseInt(speedSegment.slice(0, 2), 16) / 16 ** 2,
+        geometricIntensity: 0.7 + (parseInt(shapeSegment, 16) / 16 ** 2) * 0.5,
       };
     };
 
     const uniqueParams = generateUniqueParams(randomWalletAddress);
 
     // Constants for shape geometry
-    const R1 = 0.8;
-    const R2 = 1.6;
-    const K2 = 8;
+    const R1 = 1.2;
+    const R2 = 2.0;
+    const K2 = 10;
 
     // Performance optimization constants
     const PERFORMANCE_CONFIG = {
@@ -424,6 +425,25 @@ export default function RotatingObject({
       "▛▜▝▞▟░▒▓█▓", // Progressive fill
       "▗▘▙▚▛▜▝▞▟▖", // Rotating quarters
       "▔▕▖▗▘▙▚▛▜▝", // Thin variations
+
+      // Abstract Geometric
+      "┃┏┓╋╸╹╺╻┛┗",
+      "╭╮╯╰│─┆┊┋",
+      "┌┐└┘├┤┬┴┼",
+      "╔╗╚╝║═╠╣╦╩",
+
+      "╱╲╳┼╋╂┿╀╁╃╄╅╆",
+      "━┃┏┓┗┛┣┫┳┻╋╸╹",
+      "▚▞▌▐▀▄▖▗▘▙▚▛▜▝",
+
+      "┏┓┗┛┣┫┳┻╋╸╹╺╻",
+      "╔╗╚╝║═╠╣╦╩╬",
+      "┌┐└┘├┤┬┴┼╪╫╭╮╯╰",
+
+      // Mathematical Symbols
+      "∆∇∏∐∑∕∗∘∙√",
+      "≠≡≢≣≤≥≦≧≨≩",
+      "⊕⊖⊗⊘⊙⊚⊛⊜⊝",
     ];
 
     const CHARS = CHAR_SETS[Math.floor(Math.random() * CHAR_SETS.length)];
@@ -758,6 +778,42 @@ export default function RotatingObject({
       independentTime: 0,
     };
 
+    // Add new abstract animation parameters
+    const ABSTRACT_CONFIG = {
+      geometricPhase: 0,
+      fracturePoints: Array(8)
+        .fill(0)
+        .map(() => ({
+          angle: Math.random() * Math.PI * 2,
+          intensity: 0.3 + Math.random() * 0.7,
+          frequency: 1 + Math.random() * 3,
+          offset: Math.random() * Math.PI * 2,
+        })),
+      noiseScale: 1.8,
+      distortionLayers: 4,
+      patternDensity: 2.5,
+    };
+
+    // Add these new functions for enhanced geometric patterns
+    function generateGeometricNoise(x, y, time) {
+      return (
+        Math.sin(x * ABSTRACT_CONFIG.noiseScale + time) *
+        Math.cos(y * ABSTRACT_CONFIG.noiseScale + time * 0.7) *
+        Math.sin((x + y) * ABSTRACT_CONFIG.noiseScale * 0.5 + time * 1.2)
+      );
+    }
+
+    function calculateFractureEffect(theta, phi, time) {
+      return ABSTRACT_CONFIG.fracturePoints.reduce((acc, point) => {
+        const angleDiff = Math.abs(normalizeAngle(theta - point.angle));
+        const effect =
+          Math.exp(-Math.pow(angleDiff * 3, 2)) *
+          Math.sin(phi * point.frequency + time + point.offset) *
+          point.intensity;
+        return acc + effect;
+      }, 0);
+    }
+
     const renderFrame = () => {
       const now = Date.now();
       const elapsed = now - PERFORMANCE_CONFIG.lastFrameTime;
@@ -865,6 +921,9 @@ export default function RotatingObject({
       const thetaStep = PERFORMANCE_CONFIG.thetaStep;
       const phiStep = PERFORMANCE_CONFIG.phiStep;
 
+      // Update geometric phase
+      ABSTRACT_CONFIG.geometricPhase += 0.03;
+
       for (let thetaIndex = 0; thetaIndex < preCalculated.sinValues.length; thetaIndex++) {
         const cosTheta = preCalculated.cosValues[thetaIndex];
         const sinTheta = preCalculated.sinValues[thetaIndex];
@@ -940,10 +999,36 @@ export default function RotatingObject({
           const dynamicR2 =
             R2 * (1 + electricPulse + secondaryPulse + vortexEffect + breathe * 0.5) * concentrationShrink;
 
+          // Inside the theta/phi loops, add these new effects
+          const layeredDistortion = Array(ABSTRACT_CONFIG.distortionLayers)
+            .fill(0)
+            .reduce((acc, _, i) => {
+              const scale = (i + 1) * ABSTRACT_CONFIG.patternDensity;
+              return (
+                acc +
+                generateGeometricNoise(
+                  thetaIndex * PERFORMANCE_CONFIG.thetaStep * scale,
+                  phi * scale,
+                  time + i * Math.PI
+                ) /
+                  (i + 1)
+              );
+            }, 0);
+
+          const fractureEffect = calculateFractureEffect(thetaIndex * PERFORMANCE_CONFIG.thetaStep, phi, time);
+
+          const geometricPattern =
+            Math.sin(
+              thetaIndex * PERFORMANCE_CONFIG.thetaStep * uniqueParams.patternComplexity +
+                ABSTRACT_CONFIG.geometricPhase
+            ) *
+            Math.cos(phi * uniqueParams.patternComplexity + time) *
+            uniqueParams.geometricIntensity;
+
+          // Enhanced shape deformation
           const shapeDeform =
-            uniqueParams.shapeVariation *
-            (Math.sin(thetaIndex * PERFORMANCE_CONFIG.thetaStep * uniqueParams.patternComplexity + time) +
-              Math.cos(phi * uniqueParams.patternComplexity + time * 0.7) * 0.8);
+            uniqueParams.shapeVariation * (layeredDistortion * 0.8 + fractureEffect + geometricPattern) +
+            Math.sin(phi * uniqueParams.noiseFrequency + time * 2) * 0.5;
 
           const circleX = (dynamicR2 + dynamicR1 * cosTheta * (1 + 0.3 * Math.sin(3 * phi + time))) * (1 + shapeDeform);
 
