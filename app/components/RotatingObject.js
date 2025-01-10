@@ -42,16 +42,16 @@ export default function RotatingObject({
         saturationOffset: parseInt(colorSegment.slice(0, 2), 16) % 50,
 
         // Morphing parameters
-        morphIntensity: 0.5 + (parseInt(morphSegment, 16) / 16 ** 8) * 0.5,
-        morphFrequency: 0.5 + parseInt(morphSegment.slice(0, 4), 16) / 16 ** 4,
+        morphIntensity: 0.8 + (parseInt(morphSegment, 16) / 16 ** 8) * 0.7,
+        morphFrequency: 0.8 + parseInt(morphSegment.slice(0, 4), 16) / 16 ** 4,
 
         // Speed parameters
         speedFactor: 0.5 + parseInt(speedSegment, 16) / 16 ** 4,
         rotationDirection: parseInt(speedSegment.slice(0, 2), 16) % 2 === 0 ? 1 : -1,
 
         // Pattern parameters
-        patternScale: 0.5 + parseInt(patternSegment, 16) / 16 ** 8,
-        patternComplexity: 1 + (parseInt(patternSegment.slice(0, 4), 16) % 5),
+        patternScale: 0.8 + parseInt(patternSegment, 16) / 16 ** 8,
+        patternComplexity: 2 + (parseInt(patternSegment.slice(0, 4), 16) % 7),
 
         // Pulse parameters
         pulseIntensity: 0.3 + (parseInt(pulseSegment, 16) / 16 ** 6) * 0.7,
@@ -63,23 +63,27 @@ export default function RotatingObject({
 
         // Shape parameters
         shapeVariation: parseInt(shapeSegment, 16) / 16 ** 2,
+
+        // Add new abstract parameters
+        distortionFactor: 0.4 + (parseInt(glowSegment, 16) / 16 ** 6) * 0.8,
+        noiseFrequency: 1.2 + parseInt(speedSegment.slice(0, 2), 16) / 16 ** 2,
       };
     };
 
     const uniqueParams = generateUniqueParams(randomWalletAddress);
 
     // Constants for shape geometry
-    const R1 = 0.6;
-    const R2 = 1.2;
-    const K2 = 5;
+    const R1 = 0.8;
+    const R2 = 1.6;
+    const K2 = 8;
 
     // Performance optimization constants
     const PERFORMANCE_CONFIG = {
       frameInterval: 1000 / 30, // Cap at 30 FPS
-      thetaStep: 0.15, // Reduced resolution for performance optimization
-      phiStep: 0.15, // Reduced resolution for performance optimization
-      screenDivisor: 22, // control ascii character size (MIN: 5, MAX:100)
-      skipFrames: 9, // Only process every nth frame for heavy calculations to reduce load. (lower screenDivisor = higher skipFrames : for better performance)
+      thetaStep: 0.2, // Increased step size for more angular shapes
+      phiStep: 0.2, // Increased step size for more angular shapes
+      screenDivisor: 18, // Adjusted for larger ASCII characters
+      skipFrames: 7, // Only process every nth frame for heavy calculations to reduce load. (lower screenDivisor = higher skipFrames : for better performance)
       currentFrame: 0, // Track the current frame number
       lastFrameTime: 0, // Track the time of the last frame
       useAdaptiveResolution: true, // Flag to enable adaptive resolution
@@ -938,7 +942,8 @@ export default function RotatingObject({
 
           const shapeDeform =
             uniqueParams.shapeVariation *
-            Math.sin(thetaIndex * PERFORMANCE_CONFIG.thetaStep * uniqueParams.patternComplexity + time);
+            (Math.sin(thetaIndex * PERFORMANCE_CONFIG.thetaStep * uniqueParams.patternComplexity + time) +
+              Math.cos(phi * uniqueParams.patternComplexity + time * 0.7) * 0.8);
 
           const circleX = (dynamicR2 + dynamicR1 * cosTheta * (1 + 0.3 * Math.sin(3 * phi + time))) * (1 + shapeDeform);
 
