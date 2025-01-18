@@ -427,8 +427,8 @@ export default function RotatingObject({
       "▔▕▖▗▘▙▚▛▜▝", // Thin variations
 
       // Abstract Geometric
-      "┃┏┓╋╸╹╺╻┛┗",
       "╭╮╯╰│─┆┊┋",
+      "┃┏┓╋╸╹╺╻┛┗",
       "┌┐└┘├┤┬┴┼",
       "╔╗╚╝║═╠╣╦╩",
 
@@ -834,7 +834,6 @@ export default function RotatingObject({
       // Clear buffers efficiently
       permanentOutput.fill(" ");
       permanentZBuffer.fill(0);
-
       // Only update color states and other expensive calculations every few frames
       if (PERFORMANCE_CONFIG.currentFrame % PERFORMANCE_CONFIG.skipFrames === 0) {
         const timeSinceLastTransition = now - colorState.lastTransition;
