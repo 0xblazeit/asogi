@@ -42,16 +42,16 @@ export default function RotatingObject({
         saturationOffset: parseInt(colorSegment.slice(0, 2), 16) % 50,
 
         // Morphing parameters
-        morphIntensity: 0.5 + (parseInt(morphSegment, 16) / 16 ** 8) * 0.5,
-        morphFrequency: 0.5 + parseInt(morphSegment.slice(0, 4), 16) / 16 ** 4,
+        morphIntensity: 1.2 + (parseInt(morphSegment, 16) / 16 ** 8) * 0.9,
+        morphFrequency: 1.5 + parseInt(morphSegment.slice(0, 4), 16) / 16 ** 4,
 
         // Speed parameters
         speedFactor: 0.5 + parseInt(speedSegment, 16) / 16 ** 4,
         rotationDirection: parseInt(speedSegment.slice(0, 2), 16) % 2 === 0 ? 1 : -1,
 
         // Pattern parameters
-        patternScale: 0.5 + parseInt(patternSegment, 16) / 16 ** 8,
-        patternComplexity: 1 + (parseInt(patternSegment.slice(0, 4), 16) % 5),
+        patternScale: 1.2 + parseInt(patternSegment, 16) / 16 ** 8,
+        patternComplexity: 3 + (parseInt(patternSegment.slice(0, 4), 16) % 9),
 
         // Pulse parameters
         pulseIntensity: 0.3 + (parseInt(pulseSegment, 16) / 16 ** 6) * 0.7,
@@ -63,23 +63,28 @@ export default function RotatingObject({
 
         // Shape parameters
         shapeVariation: parseInt(shapeSegment, 16) / 16 ** 2,
+
+        // Add new abstract parameters
+        distortionFactor: 0.8 + (parseInt(glowSegment, 16) / 16 ** 6) * 1.2,
+        noiseFrequency: 2.0 + parseInt(speedSegment.slice(0, 2), 16) / 16 ** 2,
+        geometricIntensity: 0.7 + (parseInt(shapeSegment, 16) / 16 ** 2) * 0.5,
       };
     };
 
     const uniqueParams = generateUniqueParams(randomWalletAddress);
 
     // Constants for shape geometry
-    const R1 = 0.6;
-    const R2 = 1.2;
-    const K2 = 5;
+    const R1 = 1.2;
+    const R2 = 2.0;
+    const K2 = 10;
 
     // Performance optimization constants
     const PERFORMANCE_CONFIG = {
       frameInterval: 1000 / 30, // Cap at 30 FPS
-      thetaStep: 0.15, // Reduced resolution for performance optimization
-      phiStep: 0.15, // Reduced resolution for performance optimization
-      screenDivisor: 20, // Reduced from 25 to 20 for wider coverage
-      skipFrames: 5, // Only process every nth frame for heavy calculations to reduce load
+      thetaStep: 0.2, // Increased step size for more angular shapes
+      phiStep: 0.2, // Increased step size for more angular shapes
+      screenDivisor: 18, // Adjusted for larger ASCII characters
+      skipFrames: 7, // Only process every nth frame for heavy calculations to reduce load. (lower screenDivisor = higher skipFrames : for better performance)
       currentFrame: 0, // Track the current frame number
       lastFrameTime: 0, // Track the time of the last frame
       useAdaptiveResolution: true, // Flag to enable adaptive resolution
@@ -98,7 +103,7 @@ export default function RotatingObject({
 
     // Burst animation constants
     const burstConfig = {
-      timeBetweenBursts: 2000,
+      timeBetweenBursts: 6000,
       burstChance: 0.6,
       maxProgress: 1.2,
       progressIncrement: 0.02,
@@ -420,6 +425,25 @@ export default function RotatingObject({
       "▛▜▝▞▟░▒▓█▓", // Progressive fill
       "▗▘▙▚▛▜▝▞▟▖", // Rotating quarters
       "▔▕▖▗▘▙▚▛▜▝", // Thin variations
+
+      // Abstract Geometric
+      "╭╮╯╰│─┆┊┋",
+      "┃┏┓╋╸╹╺╻┛┗",
+      "┌┐└┘├┤┬┴┼",
+      "╔╗╚╝║═╠╣╦╩",
+
+      "╱╲╳┼╋╂┿╀╁╃╄╅╆",
+      "━┃┏┓┗┛┣┫┳┻╋╸╹",
+      "▚▞▌▐▀▄▖▗▘▙▚▛▜▝",
+
+      "┏┓┗┛┣┫┳┻╋╸╹╺╻",
+      "╔╗╚╝║═╠╣╦╩╬",
+      "┌┐└┘├┤┬┴┼╪╫╭╮╯╰",
+
+      // Mathematical Symbols
+      "∆∇∏∐∑∕∗∘∙√",
+      "≠≡≢≣≤≥≦≧≨≩",
+      "⊕⊖⊗⊘⊙⊚⊛⊜⊝",
     ];
 
     const CHARS = CHAR_SETS[Math.floor(Math.random() * CHAR_SETS.length)];
@@ -743,6 +767,53 @@ export default function RotatingObject({
       return angle;
     }
 
+    // Add these new state variables after SPLIT_STATE
+    const DEPTH_LAYER = {
+      rotation: 0,
+      speed: 0.003,
+      amplitude: 0.4,
+      frequency: 1.2,
+      depthScale: 0.8,
+      zOffset: 2.5, // Controls how far "behind" the main shape this layer appears
+      independentTime: 0,
+    };
+
+    // Add new abstract animation parameters
+    const ABSTRACT_CONFIG = {
+      geometricPhase: 0,
+      fracturePoints: Array(8)
+        .fill(0)
+        .map(() => ({
+          angle: Math.random() * Math.PI * 2,
+          intensity: 0.3 + Math.random() * 0.7,
+          frequency: 1 + Math.random() * 3,
+          offset: Math.random() * Math.PI * 2,
+        })),
+      noiseScale: 1.8,
+      distortionLayers: 4,
+      patternDensity: 2.5,
+    };
+
+    // Add these new functions for enhanced geometric patterns
+    function generateGeometricNoise(x, y, time) {
+      return (
+        Math.sin(x * ABSTRACT_CONFIG.noiseScale + time) *
+        Math.cos(y * ABSTRACT_CONFIG.noiseScale + time * 0.7) *
+        Math.sin((x + y) * ABSTRACT_CONFIG.noiseScale * 0.5 + time * 1.2)
+      );
+    }
+
+    function calculateFractureEffect(theta, phi, time) {
+      return ABSTRACT_CONFIG.fracturePoints.reduce((acc, point) => {
+        const angleDiff = Math.abs(normalizeAngle(theta - point.angle));
+        const effect =
+          Math.exp(-Math.pow(angleDiff * 3, 2)) *
+          Math.sin(phi * point.frequency + time + point.offset) *
+          point.intensity;
+        return acc + effect;
+      }, 0);
+    }
+
     const renderFrame = () => {
       const now = Date.now();
       const elapsed = now - PERFORMANCE_CONFIG.lastFrameTime;
@@ -763,7 +834,6 @@ export default function RotatingObject({
       // Clear buffers efficiently
       permanentOutput.fill(" ");
       permanentZBuffer.fill(0);
-
       // Only update color states and other expensive calculations every few frames
       if (PERFORMANCE_CONFIG.currentFrame % PERFORMANCE_CONFIG.skipFrames === 0) {
         const timeSinceLastTransition = now - colorState.lastTransition;
@@ -835,10 +905,23 @@ export default function RotatingObject({
 
       updateSplitState(time);
 
+      // Update depth layer rotation independently
+      DEPTH_LAYER.independentTime += 0.02;
+      DEPTH_LAYER.rotation += DEPTH_LAYER.speed;
+
+      // Create independent rotation matrices for depth layer
+      const depthCosA = Math.cos(DEPTH_LAYER.rotation);
+      const depthSinA = Math.sin(DEPTH_LAYER.rotation);
+      const depthCosB = Math.cos(DEPTH_LAYER.rotation * 0.7);
+      const depthSinB = Math.sin(DEPTH_LAYER.rotation * 0.7);
+
       const thetaMax = 2 * Math.PI;
       const phiMax = Math.PI;
       const thetaStep = PERFORMANCE_CONFIG.thetaStep;
       const phiStep = PERFORMANCE_CONFIG.phiStep;
+
+      // Update geometric phase
+      ABSTRACT_CONFIG.geometricPhase += 0.03;
 
       for (let thetaIndex = 0; thetaIndex < preCalculated.sinValues.length; thetaIndex++) {
         const cosTheta = preCalculated.cosValues[thetaIndex];
@@ -915,9 +998,36 @@ export default function RotatingObject({
           const dynamicR2 =
             R2 * (1 + electricPulse + secondaryPulse + vortexEffect + breathe * 0.5) * concentrationShrink;
 
+          // Inside the theta/phi loops, add these new effects
+          const layeredDistortion = Array(ABSTRACT_CONFIG.distortionLayers)
+            .fill(0)
+            .reduce((acc, _, i) => {
+              const scale = (i + 1) * ABSTRACT_CONFIG.patternDensity;
+              return (
+                acc +
+                generateGeometricNoise(
+                  thetaIndex * PERFORMANCE_CONFIG.thetaStep * scale,
+                  phi * scale,
+                  time + i * Math.PI
+                ) /
+                  (i + 1)
+              );
+            }, 0);
+
+          const fractureEffect = calculateFractureEffect(thetaIndex * PERFORMANCE_CONFIG.thetaStep, phi, time);
+
+          const geometricPattern =
+            Math.sin(
+              thetaIndex * PERFORMANCE_CONFIG.thetaStep * uniqueParams.patternComplexity +
+                ABSTRACT_CONFIG.geometricPhase
+            ) *
+            Math.cos(phi * uniqueParams.patternComplexity + time) *
+            uniqueParams.geometricIntensity;
+
+          // Enhanced shape deformation
           const shapeDeform =
-            uniqueParams.shapeVariation *
-            Math.sin(thetaIndex * PERFORMANCE_CONFIG.thetaStep * uniqueParams.patternComplexity + time);
+            uniqueParams.shapeVariation * (layeredDistortion * 0.8 + fractureEffect + geometricPattern) +
+            Math.sin(phi * uniqueParams.noiseFrequency + time * 2) * 0.5;
 
           const circleX = (dynamicR2 + dynamicR1 * cosTheta * (1 + 0.3 * Math.sin(3 * phi + time))) * (1 + shapeDeform);
 
@@ -949,19 +1059,60 @@ export default function RotatingObject({
 
           const zSplit = z * splitEffect.scale + splitEffect.intensity * Math.sin(phi * 5 + time * 4) * 0.4;
 
-          const ooz = 1 / zSplit;
-          const xp = Math.floor(SCREEN_WIDTH / 2 + K1 * ooz * xSplit);
-          const yp = Math.floor(SCREEN_HEIGHT / 2 - K1 * ooz * ySplit);
+          // Calculate depth layer coordinates
+          const depthMorphFactor =
+            Math.sin(
+              DEPTH_LAYER.independentTime * DEPTH_LAYER.frequency + thetaIndex * PERFORMANCE_CONFIG.thetaStep * 2
+            ) * DEPTH_LAYER.amplitude;
 
+          const depthR1 = R1 * DEPTH_LAYER.depthScale * (1 + depthMorphFactor);
+          const depthR2 = R2 * DEPTH_LAYER.depthScale * (1 + depthMorphFactor * 0.5);
+
+          const depthCircleX = depthR2 + depthR1 * cosTheta;
+          const depthCircleY = depthR1 * sinTheta;
+
+          const depthX =
+            depthCircleX * (depthCosB * cosPhi + depthSinA * depthSinB * sinPhi) -
+            depthCircleY * Math.cos(DEPTH_LAYER.rotation) * depthSinB;
+          const depthY =
+            depthCircleX * (depthSinB * cosPhi - depthSinA * depthCosB * sinPhi) +
+            depthCircleY * Math.cos(DEPTH_LAYER.rotation) * depthCosB;
+          const depthZ =
+            K2 +
+            DEPTH_LAYER.zOffset +
+            Math.cos(DEPTH_LAYER.rotation) * depthCircleX * sinPhi +
+            depthCircleY * Math.sin(DEPTH_LAYER.rotation);
+
+          // Combine main layer and depth layer
+          const combinedX = xSplit;
+          const combinedY = ySplit;
+          const combinedZ = Math.min(zSplit, depthZ); // Use smaller Z value to handle overlapping
+
+          // Update projection calculations with combined coordinates
+          const ooz = 1 / combinedZ;
+          const xp = Math.floor(SCREEN_WIDTH / 2 + K1 * ooz * combinedX);
+          const yp = Math.floor(SCREEN_HEIGHT / 2 - K1 * ooz * combinedY);
+
+          // Calculate main shape luminance
           const L =
             (cosPhi * cosTheta * sinB -
               cosA * cosTheta * sinPhi -
               sinA * sinTheta +
               cosB * (cosA * sinTheta - cosTheta * sinA * sinPhi)) *
-              (1 + Math.abs(electricField) + Math.abs(pulse) + Math.abs(twistEffect)) +
-            splitEffect.intensity * 1.2;
+            0.7;
 
-          if (L > 0 && xp >= 0 && xp < SCREEN_WIDTH && yp >= 0 && yp < SCREEN_HEIGHT) {
+          // Calculate depth layer luminance
+          const depthL =
+            (cosPhi * cosTheta * depthSinB -
+              Math.cos(DEPTH_LAYER.rotation) * cosTheta * sinPhi -
+              Math.sin(DEPTH_LAYER.rotation) * sinTheta +
+              depthCosB *
+                (Math.cos(DEPTH_LAYER.rotation) * sinTheta - cosTheta * Math.sin(DEPTH_LAYER.rotation) * sinPhi)) *
+            0.7;
+
+          const combinedL = Math.max(L, depthL);
+
+          if (combinedL > 0 && xp >= 0 && xp < SCREEN_WIDTH && yp >= 0 && yp < SCREEN_HEIGHT) {
             const pos = xp + yp * SCREEN_WIDTH;
             if (ooz > permanentZBuffer[pos]) {
               permanentZBuffer[pos] = ooz;
@@ -972,7 +1123,7 @@ export default function RotatingObject({
               } else if (sparkChance > 0.95) {
                 char = CHARS[CHARS.length - 1];
               } else {
-                char = CHARS[Math.floor((L * 8 + time) % (CHARS.length - 2)) + 1];
+                char = CHARS[Math.floor((combinedL * 8 + time) % (CHARS.length - 2)) + 1];
               }
               permanentOutput[pos] = char;
             }
